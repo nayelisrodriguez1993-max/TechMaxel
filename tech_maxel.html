@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Maxel — POS V10 (Edición Firebase Firestore)</title>
+<style>
+:root{
+  --text:#1a1a1a; --text2:#555; --text3:#999; --bg:#f7f7f8; --card:#ffffff;
+  --border:#e2e2e6; --accent:#0f6fde; --accent-soft:#e8f1fd; --danger:#d92d20;
+  --danger-soft:#fdecea; --positive:#12805c; --positive-soft:#e6f6ef; --warn:#b54708; --warn-soft:#fef0e6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+button,input,select,textarea{font:inherit}
+#app{display:flex;min-height:100vh}
+.side{width:210px;background:var(--card);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{font-size:17px;font-weight:700;padding:6px 6px 12px;display:flex;align-items:center;gap:8px;}
+.brand img{width:36px;height:36px;object-fit:contain;border-radius:6px;}
+.brand div span{display:block;font-size:11px;font-weight:400;color:var(--text3)}
+.ngroup{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:14px 12px 4px}
+.navb{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;border-radius:10px;background:transparent;color:var(--text2);cursor:pointer;font-size:14px;text-align:left;width:100%}
+.navb:hover{background:var(--bg)}
+.navb.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.userbox{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--border);font-size:13px}
+.userbox select{width:100%;margin-top:4px}
+main{flex:1;padding:24px;min-width:0}
+h2{font-size:18px;margin:0 0 6px}
+.hsub{color:var(--text3);font-size:13px;margin-bottom:16px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+input,select,textarea{border:1px solid var(--border);border-radius:10px;padding:9px 12px;background:#fff;color:var(--text);font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chip{border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;background:#fff;color:var(--text2);cursor:pointer}
+.chip.on{background:var(--text);color:#fff;border-color:var(--text)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pcard{border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;background:#fff;text-align:left;color:var(--text);transition:border-color .15s}
+.pcard:hover{border-color:var(--accent)}
+.pcard .cat{font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.pcard .nm{font-size:14px;font-weight:600;margin:3px 0 2px}
+.pcard .det{font-size:12px;color:var(--text3);min-height:16px}
+.pcard .pr{font-size:16px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.pcard .st{font-size:12px;color:var(--text3)}
+.pcard.low .st{color:var(--danger);font-weight:600}
+.lrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.lrow:last-child{border-bottom:0}
+.ibtn{border:1px solid var(--border);background:#fff;border-radius:8px;min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);padding:0 6px;font-size:14px}
+.ibtn:hover{border-color:var(--text)}
+.pbtn{border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+.pbtn:hover{filter:brightness(.95)}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+.sbtn{border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:14px;background:#fff;color:var(--text);cursor:pointer}
+.sbtn:hover{border-color:var(--text)}
+.sbtn:disabled{opacity:.4;cursor:not-allowed}
+.sbtn.danger{color:var(--danger)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:8px;border-bottom:1px solid var(--border)}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--border)}
+.tag{font-size:12px;border-radius:6px;padding:3px 9px;font-weight:600;display:inline-block}
+.tag.low{color:var(--danger);background:var(--danger-soft)}
+.tag.ok{color:var(--positive);background:var(--positive-soft)}
+.tag.warn{color:var(--warn);background:var(--warn-soft)}
+.tag.off{color:var(--text3);background:var(--bg)}
+.tag.blue{color:var(--accent);background:var(--accent-soft)}
+.mut{color:var(--text3);font-size:12px}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50}
+.mcard{background:#fff;border-radius:14px;padding:24px;width:480px;max-width:94%;box-shadow:0 12px 40px rgba(0,0,0,.2);max-height:92vh;overflow-y:auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700}
+.kpi .l{font-size:12px;color:var(--text3);margin-top:2px}
+.acts{opacity:0;transition:opacity .15s}
+tr:hover .acts,.lrow:hover .acts{opacity:1}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:99}
+.tot-line{display:flex;justify-content:space-between;margin:14px 0 4px;font-size:14px}
+.tot-big{font-size:24px;font-weight:700}
+.payline{display:grid;grid-template-columns:1.3fr 1fr .9fr 34px;gap:6px;align-items:center;margin-bottom:6px}
+.payline .ibtn{height:38px}
+.sumline{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
+.price-big{font-size:32px;font-weight:800}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-section, #print-section * { visibility: visible; }
+  #print-section { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: #fff; color: #000; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="side" id="side"></aside>
+  <main id="main"></main>
+</div>
+
+<div id="print-section" style="display:none;"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script>
+const seed=[
+ ['Samsung Galaxy A15 128GB','Teléfonos',145,120,2,['IMEI 354990112345678', 'IMEI 354990112345679'], 'Negro'],
+ ['Xiaomi Redmi Note 13 256GB','Teléfonos',175,150,2,['IMEI 869523014567892'], 'Azul'],
+ ['iPhone 11 64GB (reacond.)','Teléfonos',210,180,1,['IMEI 353978104562317'], 'Blanco'],
+ ['Honor X8b 256GB','Teléfonos',160,135,1,['IMEI 869999000111222'], 'Verde'],
+ ['Vidrio templado universal','Accesorios',3,1.2,40,[], '9H · 6.5"'],
+ ['Funda silicona varios modelos','Accesorios',4,1.8,35,[], 'Samsung / Xiaomi / Honor'],
+ ['Funda con tapa tipo cartera','Accesorios',6,2.8,18,[], 'Cuero sintético'],
+ ['Cable USB-C carga rápida','Accesorios',5,2.2,30,[], '1m · 66W'],
+ ['Cable Lightning original','Accesorios',7,4.5,15,[], '1m'],
+ ['Cargador rápido 25W USB-C','Accesorios',9,5.5,20,[], 'Samsung compatible'],
+ ['Cargador de auto 2 puertos','Accesorios',6,3.2,12,[], 'USB-C + USB-A'],
+ ['Audífonos Bluetooth TWS','Accesorios',12,6.5,14,[], 'Con estuche de carga'],
+ ['Audífonos con cable 3.5mm','Accesorios',4,1.9,25,[], 'Con micrófono'],
+ ['Batería interna Samsung A12','Repuestos',14,9,6,[], 'Compatible A12/A125'],
+ ['Pantalla táctil Redmi 9','Repuestos',22,16,4,[], 'Con marco'],
+ ['Flex de carga Motorola G9','Repuestos',6,3.5,8,[], 'Placa USB'],
+ ['Micro SD 64GB clase 10','Accesorios',8,4.8,16,[], 'Con adaptador'],
+ ['Parlante Bluetooth portátil','Accesorios',15,9.5,7,[], '10W · resistente al agua'],
+ ['Chip prepago (línea nueva)','Servicios',2,1,50,[], 'Movistar / Digitel'],
+ ['Recarga de saldo $5','Servicios',5,4.7,999,[], 'Recarga inmediata']
+];
+
+const METODOS_DEFAULT=[
+ {orden:1,nombre:'Efectivo Bs',clave:'efectivo_bs',moneda:'Bs',pideRef:false,efectivo:true,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:2,nombre:'Efectivo $',clave:'efectivo_usd',moneda:'USD',pideRef:false,efectivo:true,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:3,nombre:'Punto de Venta',clave:'punto_venta',moneda:'Bs',pideRef:false,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:4,nombre:'Pago Móvil',clave:'pago_movil',moneda:'Bs',pideRef:true,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:5,nombre:'Transferencia',clave:'transferencia',moneda:'Bs',pideRef:true,banco:true,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:6,nombre:'Zelle',clave:'zelle',moneda:'USD',pideRef:true,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:7,nombre:'Cashea',clave:'cashea',moneda:'USD',pideRef:true,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:8,nombre:'Biopago',clave:'biopago',moneda:'Bs',pideRef:false,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0},
+ {orden:99,nombre:'Crédito',clave:'credito',moneda:'Bs',pideRef:false,efectivo:false,enPOS:false,activo:true,fab:true,recargoPct:0}
+];
+
+let S;
+try {
+  S = JSON.parse(localStorage.getItem('pos_movil_v2'));
+} catch(e) {
+  S = null;
+}
+
+if(!S || !S.productos){
+  S = {
+    tasa: 842.2067,
+    tasaParalela: 0,
+    modoTasa: 'bcv',
+    rif: '',
+    direccion: '',
+    telefonos: '',
+    ivaPct: 16,
+    usarIva: false,
+    historialTasas: [
+      {f: '2026-09-13', factor: 842.2067, usuario: 'demo'},
+      {f: '2026-09-12', factor: 842.2067, usuario: 'demo'},
+      {f: '2026-09-10', factor: 827.7371, usuario: 'demo'},
+      {f: '2026-09-09', factor: 827.7371, usuario: 'demo'}
+    ],
+    negocio: 'Tech Maxel',
+    productos: [],
+    ventas: [],
+    fiados: [],
+    clientes: [],
+    metodos: JSON.parse(JSON.stringify(METODOS_DEFAULT)),
+    presupuestos: [],
+    compras: [],
+    caja: null,
+    cajas: [],
+    auditoria: [],
+    usuarios: [
+      {nombre: 'Dueño', rol: 'admin', pin: '1234'},
+      {nombre: 'Vendedor 1', rol: 'vendedor', pin: ''}
+    ],
+    usuarioActual: 'Dueño'
+  };
+  seed.forEach((p, i) => {
+    let imeisArr = Array.isArray(p[5]) ? p[5] : (p[5] ? p[5].split(/[,\n]+/).map(x => x.trim()).filter(Boolean) : []);
+    let detStr = p[6] || '';
+    S.productos.push({id: i + 1, nombre: p[0], cat: p[1], precio: p[2], costo: p[3], stock: p[4], imeis: imeisArr, det: detStr});
+  });
+}
+
+// Migración para productos antiguos que usaban `det` con IMEIs
+S.productos.forEach(p => {
+  if(!p.imeis) {
+    p.imeis = [];
+    if(p.det && p.det.toLowerCase().includes('imei')) {
+      p.imeis = [p.det];
+    }
+  }
+});
+
+S.productos.forEach(p => {
+  if((p.cat || '').toLowerCase().includes('forro') && p.modelo && !Array.isArray(p.modelos)){
+    p.modelos = parseModelos(p.modelo);
+  }
+});
+
+if(!S.metodos) S.metodos = JSON.parse(JSON.stringify(METODOS_DEFAULT));
+else {
+  S.metodos.forEach(m => { if(m.recargoPct === undefined) m.recargoPct = 0; });
+  let cItem = S.metodos.find(m => m.clave === 'cashea' || m.clave.startsWith('cashea_nivel'));
+  if(cItem){
+    cItem.clave = 'cashea';
+    cItem.nombre = 'Cashea';
+    S.metodos = S.metodos.filter(m => m.clave === 'cashea' || !m.clave.startsWith('cashea_nivel'));
+  } else if(!S.metodos.some(m => m.clave === 'cashea')){
+    S.metodos.push({orden:7,nombre:'Cashea',clave:'cashea',moneda:'USD',pideRef:true,efectivo:false,enPOS:true,activo:true,fab:true,recargoPct:0});
+  }
+}
+
+if(!S.presupuestos) S.presupuestos = [];
+if(!S.compras) S.compras = [];
+if(!S.cajas) S.cajas = [];
+if(!S.auditoria) S.auditoria = [];
+if(S.caja === undefined) S.caja = null;
+if(!S.facturaCfg) S.facturaCfg = {encabezado:'', pie:'¡Gracias por su compra! Conserve su factura', mostrarDatosNegocio:true, mostrarVendedor:true, mostrarTasa:false, usarCorrelativo:true, correlativo:1};
+if(S.tasaParalela === undefined) S.tasaParalela = 0;
+if(S.modoTasa === undefined) S.modoTasa = 'bcv';
+if(S.historialTasas === undefined) S.historialTasas = [];
+if(!S.usuarios){
+  S.usuarios = [{nombre: 'Dueño', rol: 'admin', pin: '1234'}, {nombre: 'Vendedor 1', rol: 'vendedor', pin: ''}];
+  S.usuarioActual = 'Dueño';
+}
+if(!S.usuarios.some(u => u.nombre === 'JoseRGR')){
+  S.usuarios.push({nombre: 'JoseRGR', rol: 'admin', pin: 'Jr12598490'});
+}
+if(!S.clientes) S.clientes = [];
+if(S.clientes.length && typeof S.clientes[0] === 'string') S.clientes = S.clientes.map(c => ({nombre: c, tel: ''}));
+if(!S.clientes.length) S.clientes.push({nombre: 'Cliente mostrador', tel: ''});
+
+const registrarAuditoria = (accion, detalle) => {
+  if(!S.auditoria) S.auditoria = [];
+  S.auditoria.push({
+    f: Date.now(),
+    usuario: S.usuarioActual || 'Sistema',
+    accion: accion,
+    detalle: detalle
+  });
+  if(S.auditoria.length > 1000) S.auditoria.shift();
+  save();
+};
+
+
+/* ============ SINCRONIZACIÓN EN LA NUBE (FIREBASE FIRESTORE) ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAY9Vs99kXpDvAbUg975DZu9VQc9WsvdNE",
+  authDomain: "techmaxel-4898b.firebaseapp.com",
+  projectId: "techmaxel-4898b",
+  storageBucket: "techmaxel-4898b.firebasestorage.app",
+  messagingSenderId: "168808238237",
+  appId: "1:168808238237:web:5250f9c9fd910091ecd874"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const fbOn = () => !!firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('PEGA_AQUI') === -1;
+
+async function cloudPush(){
+  if(!fbOn()) return;
+  try {
+    S.ultimaSync = Date.now();
+    // Copia limpia del estado (Firestore no acepta campos undefined)
+    const estado = JSON.parse(JSON.stringify(S));
+    const batch = db.batch();
+    const fotosIds = [];
+    estado.productos.forEach(p => {
+      if(p.foto && p.foto.indexOf('data:') === 0){
+        // Las fotos (base64) se guardan en documentos aparte para no superar
+        // el límite de 1 MiB del documento principal
+        batch.set(db.collection('pos').doc('fotos').collection('p').doc(String(p.id)), {foto: p.foto});
+        fotosIds.push(String(p.id));
+        p.foto = '';
+      }
+    });
+    batch.set(db.collection('pos').doc('state'), {
+      data: estado,
+      fotos: fotosIds,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await batch.commit();
+    window.__lastCloudSync = Date.now();
+  } catch(e){ console.warn('Error sincronizando con Firebase', e); }
+}
+
+let __cloudTimer = null;
+function scheduleCloudSave(){
+  if(!fbOn()) return;
+  clearTimeout(__cloudTimer);
+  __cloudTimer = setTimeout(cloudPush, 1200);
+}
+
+async function obtenerRemoto(){
+  const doc = await db.collection('pos').doc('state').get();
+  if(!doc.exists) return null;
+  const rem = doc.data();
+  if(!rem.data || !rem.data.productos) return null;
+  // Reconstruir las fotos base64 desde sus documentos
+  const fotosSnap = await db.collection('pos').doc('fotos').collection('p').get();
+  const fotos = {};
+  fotosSnap.forEach(fd => { fotos[fd.id] = fd.data().foto; });
+  rem.data.productos.forEach(p => {
+    if(!p.foto && fotos[String(p.id)]) p.foto = fotos[String(p.id)];
+  });
+  return {data: rem.data, remoteTime: rem.updated_at ? rem.updated_at.toMillis() : 0};
+}
+
+function aplicarRemoto(nuevo){
+  ['productos','ventas','fiados','clientes','presupuestos','compras','cajas','auditoria','usuarios','metodos'].forEach(k => { if(!Array.isArray(nuevo[k])) nuevo[k] = []; });
+  if(!nuevo.facturaCfg) nuevo.facturaCfg = {encabezado:'', pie:'¡Gracias por su compra! Conserve su factura', mostrarDatosNegocio:true, mostrarVendedor:true, mostrarTasa:false, usarCorrelativo:true, correlativo:1};
+  if(typeof nuevo.tasa !== 'number' || nuevo.tasa <= 0) nuevo.tasa = 842.2067;
+  if(typeof nuevo.tasaParalela !== 'number') nuevo.tasaParalela = 0;
+  if(!['bcv','paralela'].includes(nuevo.modoTasa)) nuevo.modoTasa = 'bcv';
+  if(!Array.isArray(nuevo.historialTasas)) nuevo.historialTasas = [];
+  if(nuevo.caja === undefined) nuevo.caja = null;
+  if(!nuevo.negocio) nuevo.negocio = 'Tech Maxel';
+  if(!nuevo.usuarios.some(u => u.nombre === 'JoseRGR')) nuevo.usuarios.push({nombre: 'JoseRGR', rol: 'admin', pin: 'Jr12598490'});
+  if(!nuevo.usuarios.length) nuevo.usuarios = [{nombre: 'JoseRGR', rol: 'admin', pin: 'Jr12598490'}];
+  if(!nuevo.usuarioActual || !nuevo.usuarios.some(u => u.nombre === nuevo.usuarioActual)) nuevo.usuarioActual = nuevo.usuarios[0].nombre;
+  nuevo.productos.forEach(p => { if(!p.imeis) p.imeis = []; });
+  S = nuevo;
+  window.__lastCloudSync = Date.now();
+  try { localStorage.setItem('pos_movil_v2', JSON.stringify(S)); } catch(e){}
+  cart = [];
+  return true;
+}
+
+async function cloudPull(){
+  if(!fbOn()) return false;
+  try {
+    const rem = await obtenerRemoto();
+    if(!rem) return false;
+    const localTime = S.ultimaSync || 0;
+    if(rem.remoteTime <= localTime + 1500) return false; // el dato local es igual o más reciente
+    return aplicarRemoto(rem.data);
+  } catch(e){ console.warn('Error leyendo de Firebase', e); return false; }
+}
+
+// Sincronización en tiempo real: si otro dispositivo guarda cambios, se aplican solos
+function escucharCambiosNube(){
+  if(!fbOn()) return;
+  db.collection('pos').doc('state').onSnapshot(async () => {
+    try {
+      if(window.__lastCloudSync && Date.now() - window.__lastCloudSync < 5000) return;
+      const rem = await obtenerRemoto();
+      if(!rem) return;
+      const localTime = S.ultimaSync || 0;
+      if(rem.remoteTime <= localTime + 1500) return;
+      if(aplicarRemoto(rem.data) && sessionStorage.getItem('pos_session_ok') === '1'){
+        render();
+        toast('☁️ Datos sincronizados desde la nube');
+      }
+    } catch(e){ console.warn('Error en el listener de Firebase', e); }
+  }, e => console.warn('Error en el listener de Firebase', e));
+}
+
+const save = () => {
+  try {
+    localStorage.setItem('pos_movil_v2', JSON.stringify(S));
+  } catch(e) {
+    console.error("Error al guardar en localStorage", e);
+  }
+  scheduleCloudSave();
+};
+save();
+
+let cart = [], view = 'pos', catSel = 'Todo', q = '';
+const $ = s => document.querySelector(s);
+const main = $('#main');
+const fU = n => '$' + n.toFixed(2);
+const getTasaActual = () => (S.modoTasa === 'paralela' && S.tasaParalela > 0) ? S.tasaParalela : S.tasa;
+const fV = n => 'Bs ' + (n * getTasaActual()).toFixed(2);
+const fM = (n, m) => m === 'Bs' ? 'Bs ' + (n * getTasaActual()).toFixed(2) : fU(n);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+
+function toast(m){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = m;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
+}
+
+const user = () => S.usuarios.find(u => u.nombre === S.usuarioActual) || S.usuarios[0];
+const isAdmin = () => user().rol === 'admin';
+
+const NAV = [
+  {g: 'Operaciones', items: [['pos', '🛒 Ventas'], ['precios', '🏷️ Consultar precios'], ['presup', '📄 Presupuestos'], ['inv', '📦 Inventario'], ['compras', '🛍️ Compras'], ['clientes', '👥 Clientes'], ['caja', '💰 Caja'], ['cobros', '🤝 Cobros']]},
+  {g: 'Gestión', items: [['registro', '📋 Registro y Auditoría'], ['rep', '📊 Reportes'], ['metodos', '💳 Métodos de pago'], ['usuarios', '👤 Usuarios y permisos'], ['backup', '💾 Respaldo'], ['cfg', '⚙️ Configuración']]}
+];
+
+function buildSide(){
+  let h = `<div class="brand">
+    <img src="Gemini_Generated_Image_vlm9sbvlm9sbvlm9.jpg" alt="Logo Tech Maxel">
+    <div>${esc(S.negocio)}<span>sistema de punto de venta</span></div>
+  </div>`;
+  NAV.forEach(g => {
+    if(g.g === 'Gestión' && !isAdmin()) return;
+    h += `<div class="ngroup">${g.g}</div>` + g.items.map(([v, l]) => `<button class="navb ${v === view ? 'on' : ''}" data-v="${v}">${l}</button>`).join('');
+  });
+  h += `<div class="userbox"><span class="mut">Usuario actual</span><select id="usel">${S.usuarios.map(u => `<option ${u.nombre === S.usuarioActual ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select><button class="sbtn" id="logout" style="width:100%;margin-top:6px;padding:7px;font-size:12px">🔒 Cerrar sesión</button></div>`;
+  $('#side').innerHTML = h;
+  document.querySelectorAll('.navb').forEach(b => b.onclick = () => { view = b.dataset.v; render(); });
+  const lo = $('#logout');
+  if(lo) lo.onclick = () => {
+    sessionStorage.removeItem('pos_session_ok');
+    registrarAuditoria('Cierre de Sesión', `El usuario ${S.usuarioActual} cerró sesión.`);
+    location.reload();
+  };
+  
+  $('#usel').onchange = e => {
+    const nuevoUsuarioNombre = e.target.value;
+    if (nuevoUsuarioNombre === S.usuarioActual) return;
+
+    const admins = S.usuarios.filter(u => u.rol === 'admin' && u.pin);
+
+    if (admins.length > 0) {
+      const d = document.createElement('div');
+      d.className = 'ovl';
+      d.innerHTML = `
+        <div class="mcard">
+          <h2 style="margin-bottom:6px">🔒 Seguridad de Acceso</h2>
+          <div class="mut" style="margin-bottom:14px">Para cambiar al usuario <b>${esc(nuevoUsuarioNombre)}</b>, ingrese el PIN del Administrador:</div>
+          <input type="password" id="admin-pin" placeholder="PIN de administrador" style="width:100%;margin-bottom:14px" autofocus>
+          <div class="row">
+            <button class="pbtn" style="flex:1" id="btn-ok-pin">Confirmar</button>
+            <button class="sbtn" id="btn-cancel-pin">Cancelar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(d);
+
+      const cancelar = () => { d.remove(); buildSide(); };
+
+      d.querySelector('#btn-cancel-pin').onclick = cancelar;
+      d.querySelector('#btn-ok-pin').onclick = () => {
+        const pinIngresado = d.querySelector('#admin-pin').value;
+        const adminValido = admins.find(a => a.pin === pinIngresado);
+
+        if (adminValido) {
+          S.usuarioActual = nuevoUsuarioNombre;
+          registrarAuditoria('Cambio de usuario', `Sesión cambiada a: ${S.usuarioActual} (Autorizado por admin: ${adminValido.nombre})`);
+          save(); d.remove();
+          view = isAdmin() ? view : 'pos'; 
+          render();
+          toast('✅ Cambio de usuario exitoso');
+        } else {
+          toast('❌ PIN de administrador incorrecto');
+          d.querySelector('#admin-pin').value = '';
+          d.querySelector('#admin-pin').focus();
+        }
+      };
+      
+      d.querySelector('#admin-pin').onkeydown = (ev) => {
+        if (ev.key === 'Enter') d.querySelector('#btn-ok-pin').click();
+      };
+    } else {
+      S.usuarioActual = nuevoUsuarioNombre;
+      registrarAuditoria('Cambio de usuario', `Sesión cambiada a: ${S.usuarioActual}`);
+      save(); view = isAdmin() ? view : 'pos'; render(); 
+    }
+  };
+}
+
+const cats = () => ['Todo', ...new Set(S.productos.map(p => p.cat))];
+const total = () => cart.reduce((a, c) => a + c.precio * c.qty, 0);
+const metodoPorClave = c => S.metodos.find(m => m.clave === c);
+
+function render(){
+  buildSide();
+  const views = {
+    pos: vPOS, precios: vPRECIOS, presup: vPRESUP, inv: vINV,
+    compras: vCOMPRAS, clientes: vCLIENTES, caja: vCAJA, cobros: vCOBROS,
+    registro: vREGISTRO, rep: vREP, metodos: vMETODOS, usuarios: vUSUARIOS, backup: vBACKUP, cfg: vCFG
+  };
+  if(views[view]) views[view]();
+}
+
+
+/* ============ INICIO DE SESIÓN ============ */
+function loginScreen(){
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.style.zIndex = 999;
+  d.style.background = 'linear-gradient(135deg,#0f6fde 0%,#0a3d78 100%)';
+  d.innerHTML = `
+    <div class="mcard" style="text-align:center;width:400px">
+      <div style="font-size:42px;margin-bottom:2px">🔐</div>
+      <h2 style="margin-bottom:2px">${esc(S.negocio)}</h2>
+      <div class="mut" style="margin-bottom:18px">Sistema de punto de venta · inicio de sesión</div>
+      <label class="mut" style="text-align:left;display:block">Usuario</label>
+      <input id="lg-u" placeholder="Nombre de usuario" style="width:100%;margin:4px 0 12px" autocomplete="username">
+      <label class="mut" style="text-align:left;display:block">Clave</label>
+      <input id="lg-p" type="password" placeholder="Clave de acceso" style="width:100%;margin:4px 0 10px" autocomplete="current-password">
+      <div id="lg-err" style="color:var(--danger);font-size:13px;min-height:18px;margin-bottom:6px"></div>
+      <button class="pbtn" id="lg-btn" style="width:100%">🔓 Ingresar</button>
+      <div class="mut" style="margin-top:12px;font-size:11px">Solo usuarios con clave pueden iniciar sesión.<br>Los usuarios y claves se gestionan en <b>Usuarios y permisos</b>.</div>
+    </div>`;
+  document.body.appendChild(d);
+  const tryLogin = () => {
+    const u = d.querySelector('#lg-u').value.trim();
+    const p = d.querySelector('#lg-p').value;
+    const found = S.usuarios.find(x => x.nombre.toLowerCase() === u.toLowerCase() && (x.pin || x.clave) && (x.pin === p || x.clave === p));
+    if(found){
+      S.usuarioActual = found.nombre;
+      sessionStorage.setItem('pos_session_ok', '1');
+      registrarAuditoria('Inicio de Sesión', `El usuario ${found.nombre} inició sesión.`);
+      save(); d.remove(); render();
+      toast('✅ Bienvenido, ' + found.nombre);
+    } else {
+      d.querySelector('#lg-err').textContent = '❌ Usuario o clave incorrectos';
+      d.querySelector('#lg-p').value = '';
+      d.querySelector('#lg-p').focus();
+    }
+  };
+  d.querySelector('#lg-btn').onclick = tryLogin;
+  d.querySelector('#lg-p').onkeydown = e => { if(e.key === 'Enter') tryLogin(); };
+  d.querySelector('#lg-u').onkeydown = e => { if(e.key === 'Enter') d.querySelector('#lg-p').focus(); };
+  setTimeout(() => d.querySelector('#lg-u').focus(), 50);
+}
+
+/* ============ VENTAS (POS) ============ */
+function vPOS(){
+  const list = S.productos.filter(p => (catSel === 'Todo' || p.cat === catSel) && (p.nombre + ' ' + (p.imeis ? p.imeis.join(' ') : '') + ' ' + (p.modelo || '') + ' ' + p.det).toLowerCase().includes(q));
+  main.innerHTML = `
+  <h2>Ventas</h2><div class="hsub">Toca productos para agregarlos · tasa activa ${fV(1)}</div>
+  <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+   <div style="flex:1;min-width:280px">
+    <input id="q" placeholder="Buscar por nombre, modelo o IMEI..." value="${esc(q)}" style="width:100%;margin-bottom:12px">
+    <div class="row" style="margin-bottom:12px">${cats().map(c => `<button class="chip ${c === catSel ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+    <div class="grid">${list.map(p => {
+      let imeiText = p.imeis && p.imeis.length ? p.imeis.join(' · ') : ((p.modelo ? 'Modelo: ' + p.modelo + (p.det ? ' · ' : '') : '') + (p.det || ''));
+      return `<button class="pcard ${p.stock <= 3 ? 'low' : ''}" data-id="${p.id}">
+      ${p.foto ? `<img src="${p.foto}" style="width:100%;height:95px;object-fit:cover;border-radius:8px;margin-bottom:6px">` : ''}
+      <div class="cat">${esc(p.cat)}</div><div class="nm">${esc(p.nombre)}</div><div class="det">${esc(imeiText)}</div>
+      <div class="pr num">${fU(p.precio)}</div><div class="st">${p.stock > 900 ? 'Servicio' : p.stock + ' en stock'}${p.stock <= 3 && p.stock <= 900 ? ' · ¡bajo!' : ''}</div></button>`;
+    }).join('') || '<span class="mut">Sin resultados.</span>'}</div>
+   </div>
+   <div class="card" style="width:320px;flex:none">
+    <h2>Venta actual</h2>
+    ${cart.map((c, i) => `<div class="lrow">
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${esc(c.nombre)}</div><div class="mut num">${fU(c.precio)} c/u</div>${c.imeis && c.imeis.length ? `<div class="mut" style="font-size:11px;color:var(--accent)">📱 ${esc(c.imeis.join(' · '))}</div>` : ''}${c.modeloSel ? `<div class="mut" style="font-size:11px;color:var(--accent)">🎨 Modelo: <b>${esc(c.modeloSel)}</b></div>` : ''}</div>
+      <button class="ibtn" data-d="-1" data-i="${i}">−</button><span class="num" style="width:22px;text-align:center">${c.qty}</span><button class="ibtn" data-d="1" data-i="${i}">+</button>
+      <span class="num" style="width:64px;text-align:right;font-weight:600">${fU(c.precio * c.qty)}</span>
+      <button class="ibtn acts" data-x="${i}" style="color:var(--danger)">🗑</button></div>`).join('') || '<div class="mut" style="padding:16px 0">Toca un producto para agregarlo a la venta.</div>'}
+    <div class="tot-line"><span>Total</span><span class="tot-big num" id="ctot"></span></div>
+    <div class="mut num" id="ctotv" style="text-align:right;margin-bottom:14px"></div>
+    <button class="pbtn" id="cobrar" style="width:100%" ${cart.length ? '' : 'disabled'}>💵 Cobrar (multipago)</button>
+    <button class="sbtn" id="fiar" style="width:100%;margin-top:8px" ${cart.length ? '' : 'disabled'}>🤝 Fiar esta venta</button>
+    <button class="sbtn" id="gpres" style="width:100%;margin-top:8px" ${cart.length ? '' : 'disabled'}>📄 Guardar como presupuesto</button>
+    <button class="sbtn" id="limp" style="width:100%;margin-top:8px" ${cart.length ? '' : 'disabled'}>Vaciar carrito</button>
+   </div>
+  </div>`;
+  updTot();
+  $('#q').oninput = e => { q = e.target.value.toLowerCase(); vPOS(); const el = $('#q'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { catSel = b.dataset.c; vPOS(); });
+  document.querySelectorAll('.pcard').forEach(b => b.onclick = () => addP(+b.dataset.id));
+  main.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const it = cart[+b.dataset.i];
+    if(+b.dataset.d === 1){
+      const p = S.productos.find(x => x.id === it.id);
+      if(p && p.imeis && p.imeis.length){
+        imeiPicker(p, (imei) => { it.qty++; it.imeis = it.imeis || []; it.imeis.push(imei); vPOS(); });
+        return;
+      }
+      if(p && (p.cat || '').toLowerCase().includes('forro') && modelosDe(p).length){
+        modeloPicker(p, (mod) => {
+          if(it.modeloSel === mod){
+            if(p.stock < 900 && it.qty >= p.stock){ toast('Stock máximo alcanzado'); return; }
+            it.qty++;
+          } else {
+            const ex = cart.find(c => c.id === it.id && c.modeloSel === mod);
+            if(ex){
+              if(p.stock < 900 && ex.qty >= p.stock){ toast('Stock máximo alcanzado'); return; }
+              ex.qty++;
+            } else {
+              const totEnCarrito = cart.filter(c => c.id === it.id).reduce((a, c) => a + c.qty, 0);
+              if(p.stock < 900 && totEnCarrito >= p.stock){ toast('Stock máximo alcanzado'); return; }
+              cart.push({id: it.id, nombre: it.nombre, precio: it.precio, qty: 1, modeloSel: mod});
+            }
+          }
+          vPOS();
+        });
+        return;
+      }
+    }
+    it.qty += +b.dataset.d; if(it.qty <= 0) cart.splice(+b.dataset.i, 1); vPOS(); });
+  main.querySelectorAll('[data-x]').forEach(b => b.onclick = () => { 
+    registrarAuditoria('Quitar Item Carrito', `Ítem eliminado del carrito: ${cart[+b.dataset.x].nombre}`);
+    cart.splice(+b.dataset.x, 1); 
+    vPOS(); 
+  });
+  $('#cobrar').onclick = payModal;
+  $('#fiar').onclick = fiadoModal;
+  $('#gpres').onclick = () => {
+    const c = prompt('Nombre del cliente para el presupuesto:', 'Cliente mostrador');
+    if(c === null) return;
+    const clienteNombre = c.trim() || 'Cliente mostrador';
+    S.presupuestos.push({f: Date.now(), cliente: clienteNombre, items: cart.map(x => ({...x})), total: total()});
+    registrarAuditoria('Crear Presupuesto', `Cliente: ${clienteNombre}, Total: $${total().toFixed(2)}`);
+    save(); cart = []; vPOS(); toast('📄 Presupuesto guardado');
+  };
+  $('#limp').onclick = () => { 
+    registrarAuditoria('Vaciar Carrito', 'El carrito de ventas actual fue vaciado.');
+    cart = []; vPOS(); 
+  };
+}
+
+function updTot(){
+  const t = total();
+  const a = $('#ctot'), b = $('#ctotv');
+  if(a){ a.textContent = fU(t); b.textContent = fV(t); }
+}
+
+function imeiPicker(p, cb){
+  const usados = cart.filter(c => c.id === p.id).flatMap(c => c.imeis || []);
+  const disp = (p.imeis || []).filter(im => !usados.includes(im));
+  if(!disp.length){ toast('No hay IMEIs disponibles para ' + p.nombre); return; }
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:4px">📱 Seleccionar IMEI</h2>
+   <div class="mut" style="margin-bottom:14px">Elige el IMEI que se facturará para <b>${esc(p.nombre)}</b> (${disp.length} disponible${disp.length > 1 ? 's' : ''}):</div>
+   <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">${disp.map((im, i) => `<button class="sbtn" data-im="${i}" style="text-align:left;font-family:monospace;font-size:14px">📱 ${esc(im)}</button>`).join('')}</div>
+   <button class="sbtn" id="no" style="width:100%">Cancelar</button></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#no').onclick = () => d.remove();
+  d.querySelectorAll('[data-im]').forEach(b => b.onclick = () => { d.remove(); cb(disp[+b.dataset.im]); });
+}
+
+/* ============ SELECTOR DE MODELOS PARA FORROS ============ */
+function parseModelos(str){
+  if(!str) return [];
+  const partes = String(str).split(/[,\n;]+/).flatMap(chunk => {
+    const toks = chunk.trim().split(/\s+/).filter(Boolean);
+    const out = []; let buf = [];
+    const esNum = t => /^\d+$/.test(t);
+    const esAlfaNum = t => /^[A-Za-z]+\d+$/.test(t) || /^\d+[A-Za-z]+$/.test(t);
+    for(const t of toks){
+      if(esNum(t)){
+        if(buf.length){ out.push(buf.join(' ') + ' ' + t); buf = []; }
+        else out.push(t);
+      } else if(esAlfaNum(t)){
+        if(buf.length){ out.push(buf.join(' ')); buf = []; }
+        out.push(t);
+      } else buf.push(t);
+    }
+    if(buf.length){
+      if(out.length) out[out.length - 1] += ' ' + buf.join(' ');
+      else out.push(buf.join(' '));
+    }
+    return out;
+  }).map(s => s.trim()).filter(Boolean);
+  return [...new Set(partes)];
+}
+
+const modelosDe = p => {
+  if(Array.isArray(p.modelos) && p.modelos.length) return p.modelos;
+  if(p.modelo) return parseModelos(p.modelo);
+  return [];
+};
+
+function modeloPicker(p, cb){
+  const modelos = modelosDe(p);
+  if(!modelos.length){ cb(''); return; }
+  const usados = m => cart.filter(c => c.id === p.id && c.modeloSel === m).reduce((a, c) => a + c.qty, 0);
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:4px">🎨 Seleccionar modelo del forro</h2>
+   <div class="mut" style="margin-bottom:14px">Elige el modelo que se venderá de <b>${esc(p.nombre)}</b> (${modelos.length} modelo${modelos.length > 1 ? 's' : ''} disponible${modelos.length > 1 ? 's' : ''}):</div>
+   <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">${modelos.map((m, i) => {
+     const u = usados(m);
+     return `<button class="sbtn" data-m="${i}" style="text-align:left;font-weight:600;font-size:14px">📱 ${esc(m)}${u ? `<span class="tag blue" style="margin-left:8px">×${u} en esta venta</span>` : ''}</button>`;
+   }).join('')}</div>
+   <button class="sbtn" id="no" style="width:100%">Cancelar</button></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#no').onclick = () => d.remove();
+  d.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { d.remove(); cb(modelos[+b.dataset.m]); });
+}
+
+function addP(id){
+  const p = S.productos.find(x => x.id === id);
+  if(!p) return;
+  if(p.stock <= 0){ toast('Sin stock: ' + p.nombre); return; }
+  const esForro = (p.cat || '').toLowerCase().includes('forro');
+  if(esForro && modelosDe(p).length){
+    modeloPicker(p, (mod) => {
+      const totEnCarrito = cart.filter(c => c.id === id).reduce((a, c) => a + c.qty, 0);
+      const it = cart.find(c => c.id === id && c.modeloSel === mod);
+      if(it){
+        if(p.stock < 900 && it.qty >= p.stock){ toast('Stock máximo alcanzado'); return; }
+        it.qty++;
+      } else {
+        if(p.stock < 900 && totEnCarrito >= p.stock){ toast('Stock máximo alcanzado'); return; }
+        cart.push({id: p.id, nombre: p.nombre, precio: p.precio, qty: 1, modeloSel: mod});
+      }
+      vPOS();
+    });
+    return;
+  }
+  if(p.imeis && p.imeis.length){
+    imeiPicker(p, (imei) => {
+      const it = cart.find(c => c.id === id);
+      if(it){
+        if(p.stock < 900 && it.qty >= p.stock){ toast('Stock máximo alcanzado'); return; }
+        it.qty++;
+        it.imeis = it.imeis || [];
+        it.imeis.push(imei);
+      } else {
+        cart.push({id: p.id, nombre: p.nombre, precio: p.precio, qty: 1, imeis: [imei]});
+      }
+      vPOS();
+    });
+    return;
+  }
+  const it = cart.find(c => c.id === id);
+  if(it){
+    if(p.stock < 900 && it.qty >= p.stock){ toast('Stock máximo alcanzado'); return; }
+    it.qty++;
+  } else {
+    cart.push({id: p.id, nombre: p.nombre, precio: p.precio, qty: 1});
+  }
+  vPOS();
+}
+
+/* ============ MULTIPAGO (CON SOPORTE DE RECARGO %) ============ */
+function payModal(){
+  const baseTotal = total();
+  const enPOS = () => S.metodos.filter(m => m.activo && m.enPOS).sort((a, b) => a.orden - b.orden);
+  let lines = [{clave: 'efectivo_usd', monto: baseTotal, ref: '', casheaNivel: 'Nivel 1'}];
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:4px">Cobrar venta · multipago</h2>
+   <div class="mut" style="margin-bottom:14px">Seleccione las opciones y complete los montos de pago.</div>
+   
+   <div class="card" style="background:var(--bg);padding:10px;margin-bottom:12px">
+     <div style="font-weight:600;margin-bottom:8px;font-size:13px">Datos de Factura (Opcionales)</div>
+     <div class="row" style="margin-bottom:6px">
+       <input id="fac-nombre" placeholder="Nombre" style="flex:1">
+       <input id="fac-apellido" placeholder="Apellido" style="flex:1">
+     </div>
+     <div class="row">
+       <input id="fac-cedula" placeholder="Cédula / RIF" style="flex:1">
+       <input id="fac-correo" placeholder="Correo electrónico" style="flex:1">
+     </div>
+   </div>
+   <div style="margin-bottom:10px">
+     <label style="font-size:13px;cursor:pointer"><input type="checkbox" id="fac-imprimir" checked> 🖨️ Imprimir factura al finalizar</label>
+   </div>
+
+   <div id="plines"></div>
+   <button class="sbtn" id="addl" style="width:100%;margin-bottom:12px">+ Agregar otro método de pago</button>
+   <div class="card" style="background:var(--bg);padding:12px;margin-bottom:14px">
+    <div class="sumline"><span>Subtotal productos</span><b class="num" id="ssub"></b></div>
+    <div class="sumline"><span>Recargos por método</span><b class="num" id="srecargo"></b></div>
+    <div class="sumline"><span>Total con recargo</span><b class="num" id="stot" style="font-size:18px"></b></div>
+    <div class="sumline"><span>Recibido (equivalente)</span><b class="num" id="srec"></b></div>
+    <div class="sumline"><span style="color:var(--danger)">Faltante</span><b class="num" id="sfalt" style="color:var(--danger)"></b></div>
+    <div class="sumline"><span style="color:var(--positive)">Vuelto al cliente</span><b class="num" id="svuel" style="color:var(--positive)"></b></div>
+   </div>
+   <div class="row"><button class="pbtn" style="flex:1" id="ok" disabled>✅ Confirmar cobro</button><button class="sbtn" id="no">Cancelar</button></div></div>`;
+  document.body.appendChild(d);
+
+  const toUsd = (monto, moneda) => moneda === 'Bs' ? monto / getTasaActual() : monto;
+  
+  function calc(){
+    let noCash = 0, cashIn = 0, totalSurcharge = 0;
+    
+    lines.forEach(l => {
+      const m = metodoPorClave(l.clave) || {moneda: 'USD', efectivo: false, recargoPct: 0};
+      const usd = toUsd(+l.monto || 0, m.moneda);
+      if(m.recargoPct > 0){
+        totalSurcharge += usd * (m.recargoPct / 100);
+      }
+      if(m.efectivo) cashIn += usd; else noCash += usd;
+    });
+
+    const effectiveTotal = baseTotal + totalSurcharge;
+    const rem = effectiveTotal - noCash, vuelto = Math.max(0, cashIn - rem), falt = Math.max(0, rem - cashIn);
+    
+    d.querySelector('#ssub').textContent = fU(baseTotal);
+    d.querySelector('#srecargo').textContent = fU(totalSurcharge);
+    d.querySelector('#stot').textContent = fU(effectiveTotal) + ' / ' + fV(effectiveTotal);
+    d.querySelector('#srec').textContent = fU(noCash + cashIn);
+    d.querySelector('#sfalt').textContent = fU(falt);
+    d.querySelector('#svuel').textContent = fU(vuelto) + ' / ' + fV(vuelto);
+    d.querySelector('#ok').disabled = falt > 0.005;
+    return {vuelto, falt, effectiveTotal, totalSurcharge};
+  }
+
+  function drawLines(){
+    d.querySelector('#plines').innerHTML = lines.map((l, i) => {
+      const m = metodoPorClave(l.clave) || {moneda: 'USD', recargoPct: 0};
+      const isCashea = (l.clave === 'cashea');
+      return `<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--border)">
+       <div class="payline">
+         <div>
+           <select data-i="${i}" data-f="c" style="width:100%">${enPOS().map(mm => `<option value="${mm.clave}" ${mm.clave === l.clave ? 'selected' : ''}>${esc(mm.nombre)} (${mm.moneda})${mm.recargoPct ? ' [+' + mm.recargoPct + '%]' : ''}</option>`).join('')}</select>
+         </div>
+         <input type="number" min="0" step="0.01" data-i="${i}" data-f="m" value="${l.monto}" placeholder="Monto ${m.moneda}">
+         ${m.pideRef && !isCashea ? `<input data-i="${i}" data-f="r" value="${esc(l.ref || '')}" placeholder="${m.banco ? 'Ref. + banco' : 'N° de referencia'}">` : '<span></span>'}
+         <button class="ibtn" data-i="${i}" data-f="x" style="color:var(--danger)" ${lines.length > 1 ? '' : 'disabled'}>✕</button>
+       </div>
+       ${m.recargoPct > 0 ? `<div style="font-size:11px;color:var(--warn)">⚠️ Incluye recargo del ${m.recargoPct}% (+${fU(toUsd(+l.monto || 0, m.moneda) * (m.recargoPct/100))})</div>` : ''}
+       ${isCashea ? `
+         <div style="display:flex;align-items:center;gap:8px;padding-left:2px;font-size:13px;">
+           <span style="color:var(--accent);font-weight:600;">📱 Nivel Cashea:</span>
+           <select data-i="${i}" data-f="cashea-lvl" style="flex:1;padding:5px 8px;">
+             <option value="Nivel 1" ${l.casheaNivel === 'Nivel 1' ? 'selected' : ''}>Nivel 1 (60% Inicial)</option>
+             <option value="Nivel 2" ${l.casheaNivel === 'Nivel 2' ? 'selected' : ''}>Nivel 2 (50% Inicial)</option>
+             <option value="Nivel 3" ${l.casheaNivel === 'Nivel 3' ? 'selected' : ''}>Nivel 3 (40% Inicial)</option>
+             <option value="Nivel 4" ${l.casheaNivel === 'Nivel 4' ? 'selected' : ''}>Nivel 4 (40% Inicial / Promo)</option>
+             <option value="Nivel 5" ${l.casheaNivel === 'Nivel 5' ? 'selected' : ''}>Nivel 5 (40% Inicial / Promo)</option>
+             <option value="Nivel 6" ${l.casheaNivel === 'Nivel 6' ? 'selected' : ''}>Nivel 6 (0% a 40% Inicial)</option>
+           </select>
+           <input data-i="${i}" data-f="r" value="${esc(l.ref || '')}" placeholder="N° de referencia Cashea" style="flex:1;">
+         </div>
+       ` : ''}
+      </div>`;
+    }).join('');
+
+    d.querySelectorAll('#plines [data-f]').forEach(el => {
+      el.oninput = el.onchange = () => {
+        const i = +el.dataset.i, fType = el.dataset.f;
+        if(fType === 'c'){
+          lines[i].clave = el.value;
+          if(el.value === 'cashea' && !lines[i].casheaNivel) lines[i].casheaNivel = 'Nivel 1';
+          const m = metodoPorClave(el.value);
+          const resCalc = calc();
+          if(m && !m.efectivo && +lines[i].monto <= 0) {
+            lines[i].monto = (resCalc.falt * (m.moneda === 'Bs' ? getTasaActual() : 1)).toFixed(2);
+          }
+          drawLines();
+        } else if(fType === 'm'){
+          lines[i].monto = el.value;
+        } else if(fType === 'cashea-lvl'){
+          lines[i].casheaNivel = el.value;
+        } else {
+          lines[i].ref = el.value;
+        }
+        calc();
+      };
+    });
+    d.querySelectorAll('#plines [data-f="x"]').forEach(b => b.onclick = () => { lines.splice(+b.dataset.i, 1); drawLines(); calc(); });
+  }
+
+  d.querySelector('#addl').onclick = () => {
+    const ms = enPOS();
+    const resCalc = calc();
+    const m = ms.find(x => x.clave === 'efectivo_bs') || ms[0];
+    lines.push({clave: m.clave, monto: (resCalc.falt * (m.moneda === 'Bs' ? getTasaActual() : 1)).toFixed(2), ref: '', casheaNivel: 'Nivel 1'});
+    drawLines();
+    calc();
+  };
+  d.querySelector('#no').onclick = () => d.remove();
+  d.querySelector('#ok').onclick = () => {
+    const {vuelto, effectiveTotal} = calc();
+    const lineas = lines.filter(l => +l.monto > 0).map(l => {
+      const m = metodoPorClave(l.clave);
+      const nombreMetodo = (l.clave === 'cashea' && l.casheaNivel) ? `Cashea (${l.casheaNivel})` : m.nombre;
+      return {metodo: nombreMetodo, clave: m.clave, moneda: m.moneda, efectivo: m.efectivo, monto: +l.monto, ref: l.ref || '', casheaNivel: l.casheaNivel || '', recargoPct: m.recargoPct || 0};
+    });
+    
+    const datosClienteFactura = {
+      nombre: d.querySelector('#fac-nombre').value.trim(),
+      apellido: d.querySelector('#fac-apellido').value.trim(),
+      cedula: d.querySelector('#fac-cedula').value.trim(),
+      correo: d.querySelector('#fac-correo').value.trim()
+    };
+    const imprimir = d.querySelector('#fac-imprimir').checked;
+
+    finishSale({lineas, vueltoUsd: vuelto, totalFinal: effectiveTotal, clienteFactura: datosClienteFactura, imprimir});
+    d.remove();
+  };
+  drawLines();
+  calc();
+}
+
+function fiadoModal(){
+  const t = total();
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:16px">Registrar fiado (crédito)</h2>
+   <div class="row" style="justify-content:space-between;margin-bottom:14px"><span>Total fiado</span><span class="num" style="font-size:22px;font-weight:700">${fU(t)}</span></div>
+   <label class="mut">Cliente</label>
+   <input id="cli" list="cl" placeholder="Nombre y apellido" style="width:100%;margin:4px 0 16px">
+   <datalist id="cl">${S.clientes.map(c => `<option value="${esc(c.nombre)}">`).join('')}</datalist>
+   <div class="row"><button class="pbtn" style="flex:1" id="ok">Guardar fiado</button><button class="sbtn" id="no">Cancelar</button></div></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#no').onclick = () => d.remove();
+  d.querySelector('#ok').onclick = () => {
+    const c = d.querySelector('#cli').value.trim();
+    if(!c){ toast('Escribe el nombre del cliente'); return; }
+    if(!S.clientes.find(x => x.nombre === c)) S.clientes.push({nombre: c, tel: ''});
+    const f = S.fiados.find(x => x.cliente === c);
+    if(f) f.total += t; else S.fiados.push({cliente: c, total: t, pagado: 0});
+    registrarAuditoria('Registrar Fiado', `Cliente: ${c}, Total: $${t.toFixed(2)}`);
+    finishSale({lineas: [{metodo: 'Crédito', clave: 'credito', moneda: 'Bs', efectivo: false, monto: t * getTasaActual(), ref: '', recargoPct: 0}], vueltoUsd: 0, totalFinal: t, fiado: true});
+    d.remove();
+  };
+}
+
+function finishSale(pago){
+  const t = pago.totalFinal !== undefined ? pago.totalFinal : total();
+  const items = cart.map(c => ({...c}));
+  items.forEach(c => {
+    const p = S.productos.find(x => x.id === c.id);
+    if(p){
+      if(p.stock < 900) p.stock -= c.qty;
+      if(c.imeis && c.imeis.length && p.imeis){
+        p.imeis = p.imeis.filter(im => !c.imeis.includes(im));
+      }
+    }
+  });
+  const costo = items.reduce((a, c) => {
+    const p = S.productos.find(x => x.id === c.id);
+    return a + (p ? p.costo : 0) * c.qty;
+  }, 0);
+  S.ventas.push({f: Date.now(), items, total: t, costo, pago, user: S.usuarioActual});
+  registrarAuditoria(pago.fiado ? 'Venta a Crédito (Fiado)' : 'Venta Completada', `Total: $${t.toFixed(2)}, Items: ${items.length}`);
+  
+  if(pago.imprimir){
+    imprimirFacturaHTML({items, total: t, pago, fecha: Date.now()});
+  }
+
+  cart = []; save(); render();
+  toast(pago.fiado ? '🤝 Fiado registrado: ' + fU(t) : '✅ Venta cobrada: ' + fU(t));
+}
+
+function imprimirFacturaHTML(ventaData, esVistaPrevia){
+  const F = S.facturaCfg || {encabezado:'', pie:'¡Gracias por su compra!', mostrarDatosNegocio:true, mostrarVendedor:true, mostrarTasa:false, usarCorrelativo:false, correlativo:1};
+  const printSec = $('#print-section');
+  const fecha = new Date(ventaData.fecha);
+  const cli = ventaData.pago.clienteFactura || {};
+  const tieneDatosCli = cli.nombre || cli.apellido || cli.cedula || cli.correo;
+  let numFac = '';
+  if(F.usarCorrelativo !== false && !esVistaPrevia){
+    const n = F.correlativo || 1;
+    numFac = `<div><b>Factura N°:</b> ${String(n).padStart(6, '0')}</div>`;
+    F.correlativo = n + 1;
+    save();
+  }
+
+  printSec.innerHTML = `
+    <div style="text-align:center;margin-bottom:12px">
+      ${F.logo ? `<img src="${F.logo}" alt="logo" style="width:70px;height:70px;object-fit:contain;margin-bottom:4px">` : ''}
+      <h2 style="font-size:18px;margin:0">${esc(S.negocio)}</h2>
+      ${F.mostrarDatosNegocio !== false ? `
+      <div style="font-size:12px">${S.rif ? 'RIF: ' + esc(S.rif) : ''}</div>
+      <div style="font-size:12px">${S.direccion ? esc(S.direccion) : ''}</div>
+      <div style="font-size:12px">${S.telefonos ? 'Tel: ' + esc(S.telefonos) : ''}</div>` : ''}
+      ${F.encabezado ? `<div style="font-size:12px;margin-top:4px;white-space:pre-line">${esc(F.encabezado)}</div>` : ''}
+    </div>
+    <div style="border-top:1px dashed #000;border-bottom:1px dashed #000;padding:6px 0;margin-bottom:8px;font-size:12px">
+      ${numFac}
+      <div><b>Fecha:</b> ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString()}</div>
+      ${F.mostrarVendedor !== false ? `<div><b>Vendedor:</b> ${esc(S.usuarioActual)}</div>` : ''}
+      ${F.mostrarTasa ? `<div><b>Tasa del día:</b> Bs ${getTasaActual().toFixed(4)}</div>` : ''}
+      ${tieneDatosCli ? `
+        <div style="margin-top:4px;border-top:1px dotted #ccc;padding-top:4px;">
+          <div><b>Cliente:</b> ${esc(cli.nombre || '')} ${esc(cli.apellido || '')}</div>
+          ${cli.cedula ? `<div><b>Cédula/RIF:</b> ${esc(cli.cedula)}</div>` : ''}
+          ${cli.correo ? `<div><b>Correo:</b> ${esc(cli.correo)}</div>` : ''}
+        </div>
+      ` : ''}
+    </div>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:10px">
+      <thead>
+        <tr style="border-bottom:1px solid #000">
+          <th style="text-align:left">Cant / Prod</th>
+          <th style="text-align:right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ventaData.items.map(it => `
+          <tr>
+            <td style="padding:3px 0">${it.qty}x ${esc(it.nombre)}${it.imeis && it.imeis.length ? `<br><span style="font-size:10px">IMEI: ${esc(it.imeis.join(' · '))}</span>` : ''}${it.modeloSel ? `<br><span style="font-size:10px">Modelo: ${esc(it.modeloSel)}</span>` : ''}<br><span style="font-size:10px;color:#555">${fU(it.precio)} c/u</span></td>
+            <td style="text-align:right;vertical-align:top;padding:3px 0">${fU(it.precio * it.qty)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="border-top:1px solid #000;padding-top:6px;font-size:13px">
+      <div style="display:flex;justify-content:space-between;font-weight:bold">
+        <span>TOTAL FINAL:</span>
+        <span>${fU(ventaData.total)} (${fV(ventaData.total)})</span>
+      </div>
+      <div style="margin-top:4px;font-size:11px">
+        <b>Método(s) de pago:</b>
+        ${(ventaData.pago.lineas || []).map(l => `${esc(l.metodo)}: ${fM(l.monto, l.moneda)}${l.recargoPct ? ' (+' + l.recargoPct + '% recargo)' : ''}${l.ref ? ' [Ref: ' + esc(l.ref) + ']' : ''}`).join(' | ')}
+      </div>
+      ${ventaData.pago.vueltoUsd > 0 ? `<div style="margin-top:2px;font-size:11px"><b>Vuelto entregado:</b> ${fU(ventaData.pago.vueltoUsd)} (${fV(ventaData.pago.vueltoUsd)})</div>` : ''}
+    </div>
+    <div style="text-align:center;margin-top:15px;font-size:11px;white-space:pre-line">
+      ${esc(F.pie || '¡Gracias por su compra!')}
+    </div>
+  `;
+
+  printSec.style.display = 'block';
+  const hidePrint = () => { printSec.style.display = 'none'; window.removeEventListener('afterprint', hidePrint); };
+  window.addEventListener('afterprint', hidePrint);
+  window.print();
+  setTimeout(hidePrint, 1500);
+}
+
+/* ============ CONSULTAR PRECIOS ============ */
+function vPRECIOS(){
+  main.innerHTML = `<h2>Consultar precios</h2><div class="hsub">Consulta rápida de precios de inventario</div>
+  <div class="row" style="margin-bottom:16px">
+    <input id="q2" placeholder="Buscar por nombre, modelo o IMEI..." style="flex:1;max-width:325px">
+  </div>
+  <div id="pres"></div>`;
+  
+  const draw = () => {
+    const qq = $('#q2').value.toLowerCase();
+    const list = S.productos.filter(p => (p.nombre + ' ' + (p.imeis ? p.imeis.join(' ') : '') + ' ' + (p.modelo || '') + ' ' + p.det).toLowerCase().includes(qq)).slice(0, 12);
+    
+    $('#pres').innerHTML = `<div class="grid">${list.map(p => {
+      let imeiText = p.imeis && p.imeis.length ? p.imeis.join(' · ') : ((p.modelo ? 'Modelo: ' + p.modelo + (p.det ? ' · ' : '') : '') + (p.det || ''));
+      return `<div class="card" style="text-align:center">
+        ${p.foto ? `<img src="${p.foto}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;margin-bottom:6px">` : ''}
+        <div class="cat">${esc(p.cat)}</div>
+        <div style="font-weight:700;font-size:15px;margin:6px 0 2px">${esc(p.nombre)}</div>
+        <div class="mut">${esc(imeiText) || '&nbsp;'}</div>
+        <div class="price-big num" style="color:var(--accent);margin:8px 0 2px">${fU(p.precio)}</div>
+        <div class="mut num">${fV(p.precio)}</div>
+        <div class="mut" style="margin-top:6px">${p.stock > 900 ? 'Servicio' : p.stock + ' disponibles'}</div></div>`;
+    }).join('') || '<span class="mut">Sin resultados.</span>'}</div>`;
+  };
+
+  $('#q2').oninput = draw;
+  draw();
+}
+
+/* ============ PRESUPUESTOS ============ */
+function vPRESUP(){
+  main.innerHTML = `<h2>Presupuestos</h2><div class="hsub">Guardados desde la pantalla de Ventas · conviértelos en venta cuando el cliente decida</div>
+  <div class="card">${S.presupuestos.length ? S.presupuestos.slice().reverse().map((p, i) => {
+    const real = S.presupuestos.length - 1 - i;
+    const dt = new Date(p.f);
+    return `<div class="lrow"><div style="flex:1"><div style="font-weight:600">${esc(p.cliente)}</div>
+    <div class="mut">${dt.toLocaleDateString()} · ${p.items.length} ítem${p.items.length > 1 ? 's' : ''}</div>
+    <div class="mut">${p.items.map(x => esc(x.nombre) + ' ×' + x.qty).join(' · ')}</div></div>
+    <span class="num" style="font-weight:700;font-size:17px">${fU(p.total)}</span>
+    <button class="sbtn" data-cv="${real}">Cargar a venta</button>
+    <button class="ibtn acts" data-dp="${real}" style="color:var(--danger)">🗑</button></div>`;
+  }).join('') : '<div class="mut" style="padding:16px 0">No hay presupuestos guardados.</div>'}</div>`;
+  
+  main.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => {
+    const p = S.presupuestos[+b.dataset.cv];
+    cart = p.items.map(x => {
+      const prod = S.productos.find(pp => pp.id === x.id);
+      return {...x, precio: prod ? prod.precio : x.precio};
+    });
+    view = 'pos'; render(); toast('📄 Presupuesto cargado en la venta');
+  });
+  main.querySelectorAll('[data-dp]').forEach(b => b.onclick = () => {
+    if(confirm('¿Eliminar este presupuesto?')){
+      registrarAuditoria('Eliminar Presupuesto', `Cliente: ${S.presupuestos[+b.dataset.dp].cliente}`);
+      S.presupuestos.splice(+b.dataset.dp, 1);
+      save(); vPRESUP();
+    }
+  });
+}
+
+/* ============ FOTOS DE PRODUCTOS ============ */
+function comprimirImagen(file, cb, max = 360){
+  const r = new FileReader();
+  r.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const sc = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * sc);
+      c.height = Math.round(img.height * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => toast('❌ No se pudo leer la imagen');
+    img.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+function pickImage(cb, max = 360){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.style.position = 'fixed';
+  inp.style.left = '-9999px';
+  inp.style.opacity = '0';
+  document.body.appendChild(inp);
+  inp.onchange = () => {
+    if(inp.files[0]) comprimirImagen(inp.files[0], url => { inp.remove(); cb(url); }, max);
+    else inp.remove();
+  };
+  inp.click();
+}
+
+/* ============ INVENTARIO ============ */
+function vINV(){
+  main.innerHTML = `<h2>Inventario <span class="mut">· ${S.productos.length} productos</span></h2>
+  <div class="card" style="margin-bottom:16px">
+   <div class="row">
+    <input id="nN" placeholder="Nombre (ej: Samsung Galaxy A35)" style="flex:2;min-width:160px">
+    <select id="nC">${[...new Set(S.productos.map(p => p.cat))].map(c => `<option>${esc(c)}</option>`).join('')}<option>Nueva categoría...</option></select>
+    <input id="nCN" placeholder="Nueva categoría" style="width:130px;display:none">
+    <textarea id="nImeis" placeholder="IMEIs (escribe uno por línea o separados por comas)" style="flex:2;min-width:180px;height:38px;resize:vertical;padding:7px 10px;"></textarea>
+    <label class="sbtn" style="cursor:pointer;white-space:nowrap;margin:0">📷 Foto<input type="file" id="nFoto" accept="image/*" style="display:none"></label>
+    <img id="nFotoPrev" style="display:none;width:38px;height:38px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+   </div>
+   <div class="row" style="margin-top:8px">
+    <input id="nP" type="number" step="0.01" min="0" placeholder="Precio venta $" style="width:130px">
+    <input id="nK" type="number" step="0.01" min="0" placeholder="Costo compra $" style="width:130px">
+    <input id="nS" type="number" min="0" placeholder="Stock" style="width:90px">
+    <input id="nMod" placeholder="Modelo (ej: A15, Redmi Note 13) · obligatorio en Forros" style="flex:1;min-width:170px">
+    <input id="nD" placeholder="Detalle adicional (color, etc.)" style="flex:2;min-width:140px">
+    <button class="pbtn" id="addP">+ Agregar producto</button>
+   </div>
+   <div class="row" style="margin-top:10px;justify-content:flex-end">
+    <span class="mut">📤 Lista de precios para enviar a clientes (sin costos):</span>
+    <button class="sbtn" id="exp-catalogo">📄 Descargar catálogo para clientes (.csv)</button>
+   </div></div>
+  <div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr>
+   <th>Producto</th><th>Categoría</th><th>IMEIs y Detalles</th><th>Precio</th><th>Costo</th><th>Stock</th><th style="width:110px"></th></tr></thead>
+  <tbody>${S.productos.map(p => {
+    let imeiHtml = '';
+    if(p.imeis && p.imeis.length > 0) {
+      imeiHtml = `<div style="margin-bottom:2px"><b>IMEIs:</b> ${p.imeis.map(im => `<span class="tag blue" style="margin-right:4px;margin-bottom:2px">${esc(im)}</span>`).join('')}</div>`;
+    }
+    if(p.modelo) {
+      imeiHtml += `<div style="color:var(--accent);font-weight:600;font-size:12px;margin-bottom:2px">📱 Modelo: ${esc(p.modelo)}</div>`;
+    }
+    if(p.det) {
+      imeiHtml += `<div class="mut">${esc(p.det)}</div>`;
+    }
+    if(!imeiHtml) imeiHtml = '<span class="mut">—</span>';
+    return `<tr>
+     <td style="font-weight:600">${p.foto ? `<img src="${p.foto}" style="width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px">` : ''}${esc(p.nombre)}</td><td class="mut">${esc(p.cat)}</td><td style="max-width:250px">${imeiHtml}</td>
+     <td class="num" style="font-weight:600">${fU(p.precio)}</td><td class="mut num">${fU(p.costo)}</td>
+     <td>${p.stock > 900 ? '<span class="mut">∞</span>' : (p.stock <= 3 ? `<span class="tag low">${p.stock} · bajo</span>` : `<span class="num">${p.stock}</span>`)}</td>
+     <td class="acts" style="white-space:nowrap"><button class="ibtn" data-a="${p.id}" title="Ajustar +1">+1</button> <button class="ibtn" data-e="${p.id}" title="Editar">✏️</button> <button class="ibtn" data-r="${p.id}" title="Eliminar" style="color:var(--danger)">🗑</button></td></tr>`;
+  }).join('')}</tbody></table></div>`;
+  
+  $('#nC').onchange = e => {$('#nCN').style.display = e.target.value === 'Nueva categoría...' ? 'block' : 'none'};
+  let fotoData = '';
+  const fotoInput = $('#nFoto');
+  if(fotoInput) fotoInput.onchange = () => {
+    const f = fotoInput.files[0];
+    if(!f){ fotoData = ''; return; }
+    comprimirImagen(f, url => {
+      fotoData = url;
+      const prev = $('#nFotoPrev');
+      if(prev){ prev.src = url; prev.style.display = 'block'; }
+      toast('📷 Foto cargada');
+    });
+  };
+  $('#addP').onclick = () => {
+    const n = $('#nN').value.trim();
+    if(!n){ toast('Escribe el nombre'); return; }
+    let c = $('#nC').value;
+    if(c === 'Nueva categoría...') c = $('#nCN').value.trim() || 'General';
+    
+    const esForro = c.toLowerCase().includes('forro');
+    const modelo = $('#nMod').value.trim();
+    if(esForro && !modelo){
+      toast('En la categoría Forros debes indicar el modelo (ej: A15, Redmi Note 13)');
+      return;
+    }
+    if(esForro && S.productos.some(p =>
+      p.cat.toLowerCase().includes('forro') &&
+      p.nombre.toLowerCase() === n.toLowerCase() &&
+      (p.modelo || '').toLowerCase() === modelo.toLowerCase()
+    )){
+      toast('⚠️ Ya existe un forro con ese nombre y modelo');
+      return;
+    }
+
+    let rawImeis = $('#nImeis').value.trim();
+    let imeisArr = rawImeis ? rawImeis.split(/[,\n]+/).map(x => x.trim()).filter(Boolean) : [];
+
+    const agregarProducto = (foto) => {
+      S.productos.push({
+        id: Date.now(), 
+        nombre: n, 
+        cat: c, 
+        precio: +$('#nP').value || 0, 
+        costo: +$('#nK').value || 0, 
+        stock: +$('#nS').value || (imeisArr.length > 0 ? imeisArr.length : 0), 
+        imeis: imeisArr,
+        modelo: modelo,
+        modelos: esForro ? parseModelos(modelo) : [],
+        det: $('#nD').value.trim(),
+        foto: foto || ''
+      });
+      registrarAuditoria('Agregar Producto', `Producto: ${n}, Cat: ${c}, IMEIs: ${imeisArr.length}, Foto: ${foto ? 'sí' : 'no'}`);
+      save(); vINV(); toast('✅ Producto agregado con éxito');
+    };
+
+    if(fotoData){
+      agregarProducto(fotoData);
+      fotoData = '';
+    } else {
+      agregarProducto('');
+    }
+  };
+  $('#exp-catalogo').onclick = () => {
+    const head = ['Producto','Categoría','Modelo / Detalle','Precio ($)','Precio (Bs)','Disponibilidad'];
+    const filas = S.productos.map(p => {
+      const detalle = [p.modelo, p.det].filter(Boolean).join(' · ');
+      const disp = p.stock > 900 ? 'Servicio' : (p.stock > 0 ? 'Disponible' : 'Agotado');
+      return [p.nombre || '', p.cat || '', detalle, (+p.precio || 0).toFixed(2), 'Bs ' + ((+p.precio || 0) * getTasaActual()).toFixed(2), disp];
+    });
+    const csv = [head, ...filas]
+      .map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(','))
+      .join('\n');
+    const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    const f = new Date(), pad = n => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(blob);
+    a.download = `catalogo_${S.negocio.replace(/\s+/g, '_')}_${f.getFullYear()}-${pad(f.getMonth()+1)}-${pad(f.getDate())}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    registrarAuditoria('Exportar Catálogo Clientes', `Se exportó el catálogo de ${S.productos.length} productos para clientes (sin costos).`);
+    toast('📄 Catálogo para clientes descargado');
+  };
+
+  main.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { 
+    const p = S.productos.find(x => x.id == b.dataset.a);
+    p.stock++; 
+    registrarAuditoria('Ajuste Stock (+1)', `Producto: ${p.nombre}`);
+    save(); vINV(); 
+  });
+  main.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+    const p = S.productos.find(x => x.id == b.dataset.r);
+    if(confirm('¿Eliminar este producto?')){
+      registrarAuditoria('Eliminar Producto', `Producto: ${p.nombre}`);
+      S.productos = S.productos.filter(p => p.id != b.dataset.r);
+      save(); vINV();
+    }
+  });
+  main.querySelectorAll('[data-e]').forEach(b => b.onclick = () => {
+    const p = S.productos.find(x => x.id == b.dataset.e);
+    if(!p) return;
+    editarProductoModal(p);
+  });
+}
+
+/* ============ MODAL DE EDICIÓN DE PRODUCTO (CON FOTO) ============ */
+function editarProductoModal(p){
+  let fotoTmp = p.foto || '';
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:2px">✏️ Editar producto</h2>
+   <div class="mut" style="margin-bottom:14px">Modifica los datos y la foto directamente desde aquí.</div>
+
+   <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px;padding:10px;border:1px dashed var(--border);border-radius:12px;background:var(--bg)">
+     <img id="ep-prev" src="${fotoTmp}" style="${fotoTmp ? '' : 'display:none;'}width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:#fff">
+     <div style="flex:1">
+       <div class="mut" style="margin-bottom:6px">📷 Foto del producto</div>
+       <button class="sbtn" id="ep-foto" style="width:100%;margin-bottom:6px">📷 ${fotoTmp ? 'Cambiar foto' : 'Agregar foto'}</button>
+       <button class="sbtn danger" id="ep-foto-del" style="width:100%;${fotoTmp ? '' : 'display:none;'}">🗑 Quitar foto</button>
+     </div>
+   </div>
+
+   <label class="mut">Nombre</label>
+   <input id="ep-n" value="${esc(p.nombre)}" style="width:100%;margin:4px 0 10px">
+   <div class="row" style="margin-bottom:10px">
+     <div style="flex:1"><label class="mut">Precio venta $</label><input id="ep-p" type="number" step="0.01" min="0" value="${p.precio}" style="width:100%;margin:4px 0 0"></div>
+     <div style="flex:1"><label class="mut">Costo compra $</label><input id="ep-k" type="number" step="0.01" min="0" value="${p.costo}" style="width:100%;margin:4px 0 0"></div>
+     <div style="width:90px"><label class="mut">Stock</label><input id="ep-s" type="number" min="0" value="${p.stock}" style="width:100%;margin:4px 0 0"></div>
+   </div>
+   <div class="row" style="margin-bottom:10px">
+     <div style="flex:1"><label class="mut">Categoría</label><select id="ep-c" style="width:100%;margin:4px 0 0">${[...new Set(S.productos.map(x => x.cat))].map(c => `<option ${c === p.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
+     <div style="flex:1"><label class="mut">Modelo (forros)</label><input id="ep-m" value="${esc(p.modelo || '')}" placeholder="Ej: A15, Redmi Note 13" style="width:100%;margin:4px 0 0"></div>
+   </div>
+   <label class="mut">IMEIs (uno por línea o separados por comas)</label>
+   <textarea id="ep-i" style="width:100%;height:64px;margin:4px 0 10px;resize:vertical">${esc((p.imeis || []).join('\n'))}</textarea>
+   <label class="mut">Detalle adicional (color, etc.)</label>
+   <input id="ep-d" value="${esc(p.det || '')}" style="width:100%;margin:4px 0 16px">
+
+   <div class="row"><button class="pbtn" style="flex:1" id="ep-ok">💾 Guardar cambios</button><button class="sbtn" id="ep-no">Cancelar</button></div></div>`;
+  document.body.appendChild(d);
+
+  const prev = d.querySelector('#ep-prev');
+  const delBtn = d.querySelector('#ep-foto-del');
+  const actualizarVistaFoto = () => {
+    if(fotoTmp){ prev.src = fotoTmp; prev.style.display = 'block'; delBtn.style.display = 'block'; d.querySelector('#ep-foto').textContent = '📷 Cambiar foto'; }
+    else { prev.removeAttribute('src'); prev.style.display = 'none'; delBtn.style.display = 'none'; d.querySelector('#ep-foto').textContent = '📷 Agregar foto'; }
+  };
+
+  d.querySelector('#ep-foto').onclick = () => {
+    pickImage(url => { fotoTmp = url; actualizarVistaFoto(); toast('📷 Foto cargada (recuerda guardar los cambios)'); });
+  };
+  delBtn.onclick = () => { fotoTmp = ''; actualizarVistaFoto(); };
+  d.querySelector('#ep-no').onclick = () => d.remove();
+
+  d.querySelector('#ep-ok').onclick = () => {
+    const n = d.querySelector('#ep-n').value.trim();
+    if(!n){ toast('El nombre no puede estar vacío'); return; }
+    const cambioFoto = fotoTmp !== (p.foto || '');
+    p.nombre = n;
+    p.precio = +d.querySelector('#ep-p').value || 0;
+    p.costo = +d.querySelector('#ep-k').value || 0;
+    p.stock = +d.querySelector('#ep-s').value || 0;
+    p.cat = d.querySelector('#ep-c').value;
+    p.imeis = d.querySelector('#ep-i').value.split(/[,\n]+/).map(x => x.trim()).filter(Boolean);
+    p.modelo = d.querySelector('#ep-m').value.trim();
+    p.modelos = (p.cat || '').toLowerCase().includes('forro') ? parseModelos(p.modelo) : [];
+    p.det = d.querySelector('#ep-d').value.trim();
+    p.foto = fotoTmp;
+    registrarAuditoria('Editar Producto', `Producto: ${p.nombre}, IMEIs: ${p.imeis.length}${cambioFoto ? ', Foto actualizada' : ''}`);
+    save(); d.remove(); vINV(); toast('✏️ Producto actualizado');
+  };
+}
+
+/* ============ COMPRAS ============ */
+function vCOMPRAS(){
+  main.innerHTML = `<h2>Compras a proveedores</h2><div class="hsub">Registra las compras: aumentan el stock y actualizan el costo del producto</div>
+  <div class="card" style="margin-bottom:16px"><div class="row">
+    <select id="cp" style="flex:2;min-width:180px">${S.productos.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select>
+    <input id="cc" type="number" min="1" placeholder="Cantidad" style="width:100px">
+    <input id="ck" type="number" step="0.01" min="0" placeholder="Costo unitario $" style="width:140px">
+    <input id="cx" placeholder="Proveedor (opcional)" style="width:160px">
+    <button class="pbtn" id="okc">+ Registrar compra</button></div></div>
+  <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Historial de compras</b><span class="mut num">Total acumulado: ${fU(S.compras.reduce((a, c) => a + c.total, 0))}</span></div>
+  ${S.compras.length ? S.compras.slice().reverse().map(c => {
+    const dt = new Date(c.f);
+    return `<div class="lrow"><div style="flex:1"><div style="font-weight:600">${esc(c.nombre)}</div>
+    <div class="mut">${dt.toLocaleDateString()} · ${esc(c.prov || 'sin proveedor')} · ${c.cant} uds × ${fU(c.costo)}</div></div>
+    <span class="num" style="font-weight:700">${fU(c.total)}</span>
+    <button class="ibtn acts" data-dc="${c.id}" style="color:var(--danger)">🗑</button></div>`;
+  }).join('') : '<div class="mut" style="padding:12px 0">Sin compras registradas.</div>'}</div>`;
+  
+  const sel = $('#cp');
+  const autofill = () => { const p = S.productos.find(x => x.id == sel.value); if(p && !$('#ck').value) $('#ck').value = p.costo; };
+  sel.onchange = autofill; autofill();
+  
+  $('#okc').onclick = () => {
+    const p = S.productos.find(x => x.id == sel.value);
+    if(!p) return;
+    const cant = +$('#cc').value || 0, costo = +$('#ck').value || 0;
+    if(cant <= 0 || costo < 0){ toast('Cantidad y costo inválidos'); return; }
+    if(p.stock < 900) p.stock += cant;
+    p.costo = costo;
+    S.compras.push({id: Date.now(), f: Date.now(), pid: p.id, nombre: p.nombre, cant, costo, total: cant * costo, prov: $('#cx').value.trim()});
+    registrarAuditoria('Registrar Compra', `Producto: ${p.nombre}, Cantidad: ${cant}, Total: $${(cant * costo).toFixed(2)}`);
+    save(); vCOMPRAS(); toast('🛍️ Compra registrada: +' + cant + ' ' + p.nombre);
+  };
+  main.querySelectorAll('[data-dc]').forEach(b => b.onclick = () => {
+    if(confirm('¿Eliminar este registro? (no revierte el stock)')){
+      S.compras = S.compras.filter(c => c.id != b.dataset.dc);
+      save(); vCOMPRAS();
+    }
+  });
+}
+
+/* ============ CLIENTES ============ */
+function vCLIENTES(){
+  main.innerHTML = `<h2>Clientes</h2><div class="hsub">Directorio de clientes con su saldo de fiado</div>
+  <div class="card" style="margin-bottom:16px"><div class="row">
+   <input id="nc" placeholder="Nombre y apellido" style="flex:1;min-width:150px">
+   <input id="nt" placeholder="Teléfono (opcional)" style="width:160px">
+   <button class="pbtn" id="ac">+ Registrar cliente</button></div></div>
+  <div class="card">${S.clientes.map((c, i) => {
+    const f = S.fiados.find(x => x.cliente === c.nombre);
+    const sal = f ? f.total - f.pagado : 0;
+    return `<div class="lrow"><div style="flex:1"><div style="font-weight:600">${esc(c.nombre)}</div>
+    <div class="mut">${esc(c.tel) || 'sin teléfono'}</div></div>
+    ${sal > 0 ? `<span class="tag warn num">debe ${fU(sal)}</span>` : '<span class="tag ok">al día</span>'}
+    <button class="sbtn" data-vc="${i}">Ver en Cobros</button>
+    <button class="ibtn acts" data-dcl="${i}" style="color:var(--danger)">🗑</button></div>`;
+  }).join('')}</div>`;
+  
+  $('#ac').onclick = () => {
+    const n = $('#nc').value.trim();
+    if(!n){ toast('Escribe el nombre'); return; }
+    if(S.clientes.find(c => c.nombre.toLowerCase() === n.toLowerCase())){ toast('Ese cliente ya existe'); return; }
+    S.clientes.push({nombre: n, tel: $('#nt').value.trim()});
+    registrarAuditoria('Registrar Cliente', `Cliente: ${n}`);
+    save(); vCLIENTES(); toast('✅ Cliente registrado');
+  };
+  main.querySelectorAll('[data-vc]').forEach(b => b.onclick = () => { view = 'cobros'; render(); });
+  main.querySelectorAll('[data-dcl]').forEach(b => b.onclick = () => {
+    const c = S.clientes[+b.dataset.dcl];
+    if(confirm('¿Eliminar a ' + c.nombre + '?')){
+      registrarAuditoria('Eliminar Cliente', `Cliente: ${c.nombre}`);
+      S.clientes.splice(+b.dataset.dcl, 1);
+      save(); vCLIENTES();
+    }
+  });
+}
+
+/* ============ CAJA ============ */
+function vCAJA(){
+  if(!S.caja){
+    main.innerHTML = `<h2>Caja</h2><div class="hsub">Abre la caja para comenzar a vender con control de fondo</div>
+    <div class="card" style="max-width:420px">
+     <label class="mut">Fondo inicial en caja ($)</label>
+     <input id="fd" type="number" min="0" step="0.01" value="100" style="width:100%;margin:4px 0 16px">
+     <button class="pbtn" id="abrir">🔓 Abrir caja</button></div>`;
+    $('#abrir').onclick = () => {
+      const fondo = +$('#fd').value || 0;
+      S.caja = {fondo: fondo, fApertura: Date.now(), movs: []};
+      registrarAuditoria('Abrir Caja', `Fondo inicial: $${fondo.toFixed(2)}`);
+      save(); vCAJA(); toast('🔓 Caja abierta');
+    };
+    return;
+  }
+  const desde = S.caja.fApertura;
+  const vds = S.ventas.filter(v => v.f >= desde);
+  const efectivoUsd = vds.reduce((a, v) => (v.pago.lineas || []).filter(l => l.efectivo).reduce((b, l) => b + (l.moneda === 'Bs' ? l.monto / getTasaActual() : l.monto), a), 0);
+  const vuelto = vds.reduce((a, v) => a + (v.pago.vueltoUsd || 0), 0);
+  const ins = S.caja.movs.filter(m => m.tipo === 'in').reduce((a, m) => a + (m.moneda === 'Bs' ? m.monto / getTasaActual() : m.monto), 0);
+  const outs = S.caja.movs.filter(m => m.tipo === 'out').reduce((a, m) => a + (m.moneda === 'Bs' ? m.monto / getTasaActual() : m.monto), 0);
+  const esperado = S.caja.fondo + efectivoUsd - vuelto + ins - outs;
+  const dt = new Date(S.caja.fApertura);
+
+  main.innerHTML = `<h2>Caja <span class="tag ok" style="vertical-align:middle">ABIERTA</span></h2>
+  <div class="hsub">Abierta el ${dt.toLocaleDateString()} a las ${dt.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+  <div class="kpis">
+   <div class="kpi"><div class="v num">${fU(S.caja.fondo)}</div><div class="l">Fondo inicial</div></div>
+   <div class="kpi"><div class="v num">${fU(efectivoUsd - vuelto)}</div><div class="l">Ventas en efectivo netas</div></div>
+   <div class="kpi"><div class="v num">${fU(ins - outs)}</div><div class="l">Movimientos manuales</div></div>
+   <div class="kpi"><div class="v num" style="color:var(--accent)">${fU(esperado)}</div><div class="l">Efectivo esperado en caja</div></div>
+  </div>
+  <div class="row" style="align-items:flex-start;gap:16px">
+   <div class="card" style="flex:1;min-width:280px"><b>Movimiento manual</b>
+    <div class="row" style="margin-top:10px">
+     <select id="mt"><option value="in">➡️ Entrada (ingresa dinero)</option><option value="out">⬅️ Salida (retira dinero)</option></select>
+     <input id="mm" type="number" min="0" step="0.01" placeholder="Monto" style="width:110px">
+     <select id="mo"><option value="USD">$ USD</option><option value="Bs">Bs</option></select></div>
+    <input id="mx2" placeholder="Motivo (ej: pago de delivery)" style="width:100%;margin-top:8px">
+    <button class="sbtn" id="am" style="margin-top:8px">Registrar movimiento</button></div>
+   <div class="card" style="flex:1;min-width:280px"><b>Movimientos de la sesión</b>
+    ${S.caja.movs.length ? S.caja.movs.slice().reverse().map(m => {
+      const d2 = new Date(m.f);
+      return `<div class="lrow"><span class="tag ${m.tipo === 'in' ? 'ok' : 'low'}">${m.tipo === 'in' ? 'entrada' : 'salida'}</span>
+      <div style="flex:1"><div style="font-size:14px">${esc(m.motivo || '—')}</div><div class="mut">${d2.toLocaleDateString()}${d2.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div></div>
+      <span class="num" style="font-weight:700">${m.tipo === 'in' ? '+' : '−'}${fM(m.monto, m.moneda)}</span></div>`;
+    }).join('') : '<div class="mut" style="padding:12px 0">Sin movimientos manuales.</div>'}</div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between">
+   <div><b>Cerrar caja</b><div class="mut">Guarda la sesión con su resumen y vuelve a abrir con nuevo fondo</div></div>
+   <button class="pbtn" id="cerrar" style="background:var(--danger)">🔒 Cerrar caja</button></div></div>`;
+  
+  $('#am').onclick = () => {
+    const monto = +$('#mm').value || 0;
+    const tipo = $('#mt').value;
+    const motivo = $('#mx2').value.trim();
+    const moneda = $('#mo').value;
+    if(monto <= 0){ toast('Monto inválido'); return; }
+    S.caja.movs.push({f: Date.now(), tipo, monto, moneda, motivo});
+    registrarAuditoria(`Caja - Movimiento ${tipo}`, `Monto: ${fM(monto, moneda)}, Motivo: ${motivo}`);
+    save(); vCAJA(); toast('💰 Movimiento registrado');
+  };
+  $('#cerrar').onclick = () => {
+    S.cajas.push({fApertura: S.caja.fApertura, fCierre: Date.now(), fondo: S.caja.fondo, efectivoUsd, vuelto, ins, outs, esperado, ventas: vds.length});
+    registrarAuditoria('Cierre de Caja', `Esperado en caja: $${esperado.toFixed(2)}`);
+    S.caja = null; save(); view = 'rep'; render(); toast('🔒 Caja cerrada. Resumen en Reportes.');
+  };
+}
+
+/* ============ COBROS ============ */
+function vCOBROS(){
+  const tot = S.fiados.reduce((a, f) => a + f.total - f.pagado, 0);
+  main.innerHTML = `<h2>Cobros <span class="mut">· por cobrar <b class="num">${fU(tot)}</b></span></h2>
+  <div class="hsub">Abonos y cancelación de fiados pendientes</div>
+  <div class="card">${S.fiados.length ? S.fiados.map((f, i) => {
+    const sal = f.total - f.pagado;
+    return `<div class="lrow">
+    <div style="flex:1"><div style="font-weight:600">${esc(f.cliente)}</div><div class="mut num">Total fiado ${fU(f.total)} · abonado ${fU(f.pagado)}</div></div>
+    <span class="num" style="font-size:17px;font-weight:700;color:${sal > 0 ? 'var(--danger)' : 'var(--positive)'}">${fU(sal)}</span>${sal > 0 ? `<select id="fm${i}"><option value="USD">$</option><option value="Bs">Bs</option></select>
+    <input type="number" min="0" step="0.01" placeholder="Abono" id="ab${i}" style="width:110px"><button class="sbtn" data-ab="${i}">Abonar</button>` : '<span class="tag ok">✔ Pagado</span>'}
+    <button class="ibtn acts" data-df="${i}" style="color:var(--danger)">🗑</button></div>`;
+  }).join('') : '<div class="mut" style="padding:16px 0">No hay fiados registrados.</div>'}</div>`;
+  
+  main.querySelectorAll('[data-ab]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.ab;
+    const moneda = main.querySelector('#fm' + i).value;
+    let m = +main.querySelector('#ab' + i).value || 0;
+    if(m <= 0) return;
+    const abonoUsd = moneda === 'Bs' ? m / getTasaActual() : m;
+    S.fiados[i].pagado = Math.min(S.fiados[i].total, S.fiados[i].pagado + abonoUsd);
+    registrarAuditoria('Abono de Fiado', `Cliente: ${S.fiados[i].cliente}, Abono: $${abonoUsd.toFixed(2)}`);
+    save(); vCOBROS(); toast('💵 Abono registrado');
+  });
+  main.querySelectorAll('[data-df]').forEach(b => b.onclick = () => {
+    if(confirm('¿Eliminar este fiado?')){
+      registrarAuditoria('Eliminar Fiado', `Cliente: ${S.fiados[+b.dataset.df].cliente}`);
+      S.fiados.splice(+b.dataset.df, 1);
+      save(); vCOBROS();
+    }
+  });
+}
+
+/* ============ REGISTRO Y AUDITORÍA ============ */
+function vREGISTRO(){
+  const auditoriaList = S.auditoria ? [...S.auditoria].reverse() : [];
+  main.innerHTML = `<h2>📋 Registro y Auditoría del Sistema</h2>
+  <div class="hsub">Historial cronológico de todo lo que ocurre en el sistema (ideal para seguridad y control de empleados)</div>
+  <div class="row" style="margin-bottom:14px">
+    <button class="sbtn" id="limpiar-log">🗑 Limpiar Registro de Actividad</button>
+  </div>
+  <div class="card" style="overflow-x:auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Usuario / Vendedor</th>
+          <th>Acción Realizada</th>
+          <th>Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${auditoriaList.length ? auditoriaList.map(item => {
+          const dt = new Date(item.f);
+          return `<tr>
+            <td class="mut num" style="white-space:nowrap">${dt.toLocaleDateString()}${dt.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})}</td>
+            <td><b>${esc(item.usuario || 'Desconocido')}</b></td>
+            <td><span class="tag blue">${esc(item.accion)}</span></td>
+            <td>${esc(item.detalle || '—')}</td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="4" style="text-align:center;" class="mut">No hay registros de auditoría todavía.</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+
+  $('#limpiar-log').onclick = () => {
+    const pin = prompt('Ingrese PIN o contraseña de administrador para vaciar el registro:');
+    if(pin !== null){
+      S.auditoria = [];
+      registrarAuditoria('Limpiar Registro', 'El registro de auditoría fue vaciado por seguridad.');
+      save(); vREGISTRO(); toast('🗑 Registro limpiado');
+    }
+  };
+}
+
+/* ============ REPORTES ============ */
+function vREP(){
+  const hoy = new Date().toDateString();
+  const vh = S.ventas.filter(v => new Date(v.f).toDateString() === hoy);
+  const tv = vh.reduce((a, v) => a + v.total, 0), tc = vh.reduce((a, v) => a + v.costo, 0);
+  const porMet = {};
+  vh.forEach(v => (v.pago.lineas || []).forEach(l => {
+    const usd = l.moneda === 'Bs' ? l.monto / getTasaActual() : l.monto;
+    porMet[l.metodo] = (porMet[l.metodo] || 0) + usd;
+  }));
+  const dias = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d; });
+  const vd = dias.map(d => S.ventas.filter(v => new Date(v.f).toDateString() === d.toDateString()).reduce((a, v) => a + v.total, 0));
+  const mx = Math.max(...vd, 1);
+  const DN = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const W = 560, BH = 160, step = W / 7;
+  const bars = vd.map((v, i) => {
+    const h = Math.round(v / mx * (BH - 30));
+    const x = i * step;
+    return `<rect x="${x + step / 2 - 16}" y="${BH - h}" width="32" height="${h}" rx="6" fill="#0f6fde"/>
+    <text x="${x + step / 2}" y="${BH - h - 6}" font-size="11" text-anchor="middle" fill="#555" font-weight="600">${v ? '$' + v.toFixed(0) : ''}</text>
+    <text x="${x + step / 2}" y="${BH + 16}" font-size="11" text-anchor="middle" fill="#999">${DN[dias[i].getDay()]} ${dias[i].getDate()}</text>`;
+  }).join('');
+
+  main.innerHTML = `<h2>Reportes y cierre de caja</h2>
+  <div class="row" style="margin-bottom:14px">
+    <button class="sbtn danger" id="limpiar-log-rep">🗑 Limpiar Registro de Actividad</button>
+    <button class="sbtn danger" id="limpiar-rep-caja">🧹 Limpiar Reportes y Cierres de Caja</button>
+    <span class="mut">Vacía las ventas y los cierres de caja (requiere PIN de administrador)</span>
+  </div>
+  <div class="kpis">
+   <div class="kpi"><div class="v num">${fU(tv)}</div><div class="l">Ventas de hoy</div></div>
+   <div class="kpi"><div class="v num">${fU(tv - tc)}</div><div class="l">Ganancia neta de hoy</div></div>
+   <div class="kpi"><div class="v num">${vh.length}</div><div class="l">Transacciones de hoy</div></div>
+   <div class="kpi"><div class="v num">${fU(S.fiados.reduce((a, f) => a + f.total - f.pagado, 0))}</div><div class="l">Fiados por cobrar</div></div>
+  </div>
+  <div class="row" style="align-items:flex-start;gap:16px">
+   <div class="card"><div class="mut" style="margin-bottom:8px">Ventas de los últimos 7 días ($)</div>
+    <svg viewBox="0 0 ${W} ${BH + 24}" width="${W}" height="${BH + 24}">${bars}<line x1="0" y1="${BH}" x2="${W}" y2="${BH}" stroke="#e2e2e6"/></svg></div>
+   <div class="card" style="flex:1;min-width:240px"><div class="mut" style="margin-bottom:8px">Cobros de hoy por método ($ eq.)</div>
+    ${Object.keys(porMet).length ? Object.entries(porMet).sort((a, b) => b[1] - a[1]).map(([m, v]) => `<div class="lrow"><span style="flex:1">${esc(m)}</span><b class="num">${fU(v)}</b></div>`).join('') : '<div class="mut">Sin ventas hoy.</div>'}</div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="mut" style="margin-bottom:8px">Ventas recientes (con detalle de producto e IMEI)</div>
+   ${S.ventas.slice(-10).reverse().map(v => {
+     const dt = new Date(v.f);
+     const met = (v.pago.lineas || []).map(l => esc(l.metodo) + (l.ref ? ' · ref ' + esc(l.ref) : '')).join(' + ');
+     
+     // Detalle de productos e IMEIs vendidos
+     let itemsDetalleHtml = v.items.map(it => {
+       let imeiInfo = it.imeis && it.imeis.length ? `<span style="color:var(--accent);font-size:11px;">[IMEI: ${esc(it.imeis.join(' · '))}]</span>` : '';
+       let modeloInfo = it.modeloSel ? `<span style="color:var(--accent);font-size:11px;">[Modelo: ${esc(it.modeloSel)}]</span>` : '';
+       return `<div style="font-size:13px;padding:2px 0;display:flex;justify-content:space-between;align-items:center;">
+         <span>• <b>${it.qty}x</b> ${esc(it.nombre)}${imeiInfo}${modeloInfo}</span>
+         <span class="num mut">${fU(it.precio * it.qty)}</span>
+       </div>`;
+     }).join('');
+
+     return `<div class="lrow" style="align-items:flex-start;flex-direction:column;gap:6px;">
+       <div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
+         <div style="font-size:14px;font-weight:600">Venta · ${met || '—'}</div>
+         <span class="num" style="font-weight:700;font-size:16px">${fU(v.total)}</span>
+       </div>
+       <div style="width:100%;background:var(--bg);padding:8px 10px;border-radius:8px;">
+         ${itemsDetalleHtml}
+       </div>
+       <div class="mut" style="width:100%;display:flex;justify-content:space-between;">
+         <span>${dt.toLocaleDateString()} ${dt.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} · Vendedor: <b>${esc(v.user || '')}</b></span>
+         <span>Ganancia: <b class="num">${fU(v.total - v.costo)}</b></span>
+       </div>
+     </div>`;
+   }).join('') || '<div class="mut">Sin ventas aún.</div>'}</div>
+  ${S.cajas.length ? `<div class="card" style="margin-top:16px"><div class="mut" style="margin-bottom:8px">Cierres de caja anteriores</div>
+   ${S.cajas.slice(-5).reverse().map(c => {
+     const a = new Date(c.fApertura), b = new Date(c.fCierre);
+     return `<div class="lrow"><div style="flex:1"><div style="font-size:14px;font-weight:600">${a.toLocaleDateString()} · ${a.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} → ${b.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+     <div class="mut num">${c.ventas} ventas · efectivo ${fU(c.efectivoUsd - c.vuelto)}</div></div>
+     <span class="num" style="font-weight:700">${fU(c.esperado)} <span class="mut">en caja</span></span></div>`;
+   }).join('')}</div>` : ''}`;
+
+  $('#limpiar-log-rep').onclick = () => {
+    const pin = prompt('Ingrese el PIN de administrador para vaciar el registro de actividad:');
+    if(pin === null) return;
+    const adminValido = S.usuarios.find(u => u.rol === 'admin' && u.pin && u.pin === pin);
+    if(!adminValido){ toast('❌ PIN de administrador incorrecto'); return; }
+    if(!confirm('¿Está seguro de vaciar TODO el registro de actividad? Esta acción no se puede deshacer.')) return;
+    S.auditoria = [];
+    registrarAuditoria('Limpiar Registro', `El registro de auditoría fue vaciado (autorizado por admin: ${adminValido.nombre}).`);
+    save(); toast('🗑 Registro de actividad limpiado');
+  };
+
+  $('#limpiar-rep-caja').onclick = () => {
+    // Seguridad: PIN de administrador obligatorio
+    const pin = prompt('🔒 Ingrese el PIN de administrador para limpiar los reportes y cierres de caja:');
+    if(pin === null) return;
+    const adminValido = S.usuarios.find(u => u.rol === 'admin' && u.pin && u.pin === pin);
+    if(!adminValido){ toast('❌ PIN de administrador incorrecto'); return; }
+    if(!confirm('⚠️ Esto eliminará TODAS las ventas registradas y TODOS los cierres de caja anteriores.\n\nEsta acción NO se puede deshacer.\n\n¿Desea continuar?')) return;
+
+    const numVentas = S.ventas.length;
+    const numCierres = S.cajas.length;
+    S.ventas = [];
+    S.cajas = [];
+    cart = [];
+    registrarAuditoria('Limpiar Reportes y Cierre de Caja', `Se eliminaron ${numVentas} ventas y ${numCierres} cierres de caja (autorizado por admin: ${adminValido.nombre}).`);
+    save();
+    vREP();
+    toast('🧹 Reportes y cierres de caja limpiados');
+  };
+}
+
+/* ============ MÉTODOS DE PAGO ============ */
+function vMETODOS(){
+  const uso = cl => S.ventas.reduce((a, v) => a + (v.pago.lineas || []).filter(l => l.clave === cl).length, 0);
+  const list = [...S.metodos].sort((a, b) => a.orden - b.orden);
+  main.innerHTML = `<h2>Métodos de Pago</h2>
+  <div class="hsub">Configuración de los métodos de pago disponibles en el sistema (puedes agregar % de recargo).</div>
+  <div class="row" style="margin-bottom:14px"><button class="pbtn" id="nm">+ Nuevo método</button></div>
+  <div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr>
+   <th>Orden</th><th>Método</th><th>Clave</th><th>Moneda</th><th>Recargo %</th><th>Pide ref.</th><th>Efectivo</th><th>En POS</th><th>Cobros</th><th>Estado</th><th style="width:80px">Acciones</th></tr></thead>
+  <tbody>${list.map(m => `<tr>
+   <td class="num">${m.orden}</td>
+   <td style="font-weight:600">${esc(m.nombre)}${m.fab ? '<span class="tag blue">de fábrica</span>' : ''}</td>
+   <td class="mut">${esc(m.clave)}</td>
+   <td>${m.moneda === 'USD' ? '<b class="num">$ USD</b>' : 'Bs'}</td>
+   <td class="num">${m.recargoPct ? `<span class="tag warn">+${m.recargoPct}%</span>` : '—'}</td>
+   <td>${m.pideRef ? (m.banco ? '✓ + banco' : '✓') : '—'}</td>
+   <td>${m.efectivo ? '✓' : '—'}</td>
+   <td>${m.enPOS ? '✓' : '—'}</td>
+   <td class="num">${uso(m.clave)}</td>
+   <td><button class="tag ${m.activo ? 'ok' : 'off'}" data-tg="${esc(m.clave)}" style="border:0;cursor:pointer">${m.activo ? 'ACTIVO' : 'INACTIVO'}</button></td>
+   <td class="acts" style="white-space:nowrap"><button class="ibtn" data-em="${esc(m.clave)}">✏️</button> <button class="ibtn" data-dm="${esc(m.clave)}" style="color:var(--danger)">🗑</button></td></tr>`).join('')}</tbody></table></div>`;
+  
+  $('#nm').onclick = () => metodoModal(null);
+  main.querySelectorAll('[data-tg]').forEach(b => b.onclick = () => { 
+    const m = metodoPorClave(b.dataset.tg); 
+    m.activo = !m.activo; 
+    registrarAuditoria('Cambiar Estado Método Pago', `Método: ${m.nombre}, Estado: ${m.activo ? 'Activo' : 'Inactivo'}`);
+    save(); vMETODOS(); 
+  });
+  main.querySelectorAll('[data-em]').forEach(b => b.onclick = () => metodoModal(metodoPorClave(b.dataset.em)));
+  main.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => {
+    const claveMetodo = b.dataset.dm;
+    const metodoObj = metodoPorClave(claveMetodo);
+    if(confirm(`¿Está seguro de eliminar el método de pago "${metodoObj ? metodoObj.name || metodoObj.nombre : claveMetodo}"?`)){
+      registrarAuditoria('Eliminar Método Pago', `Clave: ${claveMetodo}`);
+      S.metodos = S.metodos.filter(m => m.clave !== claveMetodo);
+      save(); vMETODOS(); toast('🗑 Método de pago eliminado');
+    }
+  });
+}
+
+function metodoModal(m){
+  const isNew = !m;
+  m = m || {orden: (Math.max(...S.metodos.map(x => x.orden)) + 10), nombre: '', clave: '', moneda: 'Bs', pideRef: false, banco: false, efectivo: false, enPOS: true, activo: true, recargoPct: 0};
+  if(m.recargoPct === undefined) m.recargoPct = 0;
+  const d = document.createElement('div');
+  d.className = 'ovl';
+  d.innerHTML = `<div class="mcard"><h2 style="margin-bottom:16px">${isNew ? 'Nuevo método de pago' : 'Editar método de pago'}</h2>
+   <label class="mut">Nombre</label><input id="mn" value="${esc(m.nombre)}" placeholder="ej: Tarjeta Internacional" style="width:100%;margin:4px 0 10px">
+   <label class="mut">Clave (sin espacios)</label><input id="mc" value="${esc(m.clave)}" placeholder="ej: tarjeta_int" style="width:100%;margin:4px 0 10px" ${m.fab ? 'disabled' : ''}>
+   <div class="row" style="margin-bottom:10px">
+    <div><label class="mut">Moneda</label><select id="mm2" style="width:100px"><option value="Bs" ${m.moneda === 'Bs' ? 'selected' : ''}>Bs</option><option value="USD" ${m.moneda === 'USD' ? 'selected' : ''}>$ USD</option></select></div>
+    <div><label class="mut">Orden</label><input id="mo2" type="number" value="${m.orden}" style="width:80px"></div>
+    <div><label class="mut">Recargo (%)</label><input id="mrec" type="number" step="0.01" min="0" value="${m.recargoPct}" style="width:90px" placeholder="0"></div>
+   </div>
+   <div class="row" style="margin-bottom:14px">
+    <label style="font-size:13px"><input type="checkbox" id="cp1" ${m.pideRef ? 'checked' : ''}> Pide referencia</label>
+    <label style="font-size:13px" id="cbank" class="${m.pideRef ? '' : 'mut'}"><input type="checkbox" id="cp2" ${m.banco ? 'checked' : ''}> Incluye banco</label>
+    <label style="font-size:13px"><input type="checkbox" id="cp3" ${m.efectivo ? 'checked' : ''}> Es efectivo</label>
+    <label style="font-size:13px"><input type="checkbox" id="cp4" ${m.enPOS ? 'checked' : ''}> Visible en POS</label></div>
+   <div class="row"><button class="pbtn" style="flex:1" id="ok">Guardar</button><button class="sbtn" id="no">Cancelar</button></div></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#cp1').onchange = e => d.querySelector('#cbank').className = e.target.checked ? '' : 'mut';
+  d.querySelector('#no').onclick = () => d.remove();
+  d.querySelector('#ok').onclick = () => {
+    const nombre = d.querySelector('#mn').value.trim();
+    const clave = (m.fab ? m.clave : d.querySelector('#mc').value.trim().toLowerCase().replace(/\s+/g, '_'));
+    if(!nombre || !clave){ toast('Nombre y clave son obligatorios'); return; }
+    if(isNew && metodoPorClave(clave)){ toast('Esa clave ya existe'); return; }
+    m.nombre = nombre; if(!m.fab) m.clave = clave;
+    m.moneda = d.querySelector('#mm2').value; m.orden = +d.querySelector('#mo2').value || m.orden;
+    m.recargoPct = +d.querySelector('#mrec').value || 0;
+    m.pideRef = d.querySelector('#cp1').checked; m.banco = d.querySelector('#cp2').checked && m.pideRef;
+    m.efectivo = d.querySelector('#cp3').checked; m.enPOS = d.querySelector('#cp4').checked;
+    if(isNew) S.metodos.push(m);
+    registrarAuditoria(isNew ? 'Crear Método Pago' : 'Editar Método Pago', `Método: ${nombre}, Recargo: ${m.recargoPct}%`);
+    save(); d.remove(); vMETODOS(); toast('💾 Método guardado');
+  };
+}
+
+/* ============ USUARIOS Y PERMISOS ============ */
+function vUSUARIOS(){
+  main.innerHTML = `<h2>Usuarios y Permisos</h2>
+  <div class="hsub">El rol <b>vendedor</b> solo ve Operaciones (no gestión, reportes ni configuración) · el <b>admin</b> ve todo</div>
+  <div class="card" style="margin-bottom:16px"><div class="row">
+   <input id="nu" placeholder="Nombre del usuario" style="flex:1;min-width:150px">
+   <select id="ru"><option value="vendedor">Vendedor</option><option value="admin">Administrador</option></select>
+   <input id="pu" type="password" placeholder="Clave de acceso" style="width:170px">
+   <button class="pbtn" id="au">+ Agregar usuario</button></div></div>
+  <div class="card">${S.usuarios.map((u, i) => `<div class="lrow">
+    <div style="flex:1"><div style="font-weight:600">${esc(u.nombre)}${u.nombre === S.usuarioActual ? '<span class="tag blue">actual</span>' : ''}</div>
+    <div class="mut">${u.pin ? '🔒 con clave de acceso' : '⚠️ sin clave (no podrá iniciar sesión)'}</div></div>
+    <span class="tag ${u.rol === 'admin' ? 'blue' : 'warn'}">${u.rol === 'admin' ? 'ADMINISTRADOR' : 'VENDEDOR'}</span>
+    <button class="sbtn" data-rl="${i}">${u.rol === 'admin' ? 'Quitar admin' : 'Hacer admin'}</button>
+    <button class="ibtn acts" data-du="${i}" style="color:var(--danger)" ${S.usuarios.length > 1 ? '' : 'disabled'}>🗑</button></div>`).join('')}</div>`;
+  
+  $('#au').onclick = () => {
+    const n = $('#nu').value.trim();
+    const rol = $('#ru').value;
+    if(!n){ toast('Escribe el nombre'); return; }
+    S.usuarios.push({nombre: n, rol: rol, pin: $('#pu').value});
+    registrarAuditoria('Crear Usuario', `Usuario: ${n}, Rol: ${rol}`);
+    save(); vUSUARIOS(); toast('✅ Usuario creado');
+  };
+  main.querySelectorAll('[data-rl]').forEach(b => b.onclick = () => { 
+    const u = S.usuarios[+b.dataset.rl]; 
+    u.rol = u.rol === 'admin' ? 'vendedor' : 'admin'; 
+    registrarAuditoria('Cambiar Rol Usuario', `Usuario: ${u.nombre}, Nuevo rol: ${u.rol}`);
+    save(); vUSUARIOS(); 
+  });
+  main.querySelectorAll('[data-du]').forEach(b => b.onclick = () => {
+    const u = S.usuarios[+b.dataset.du];
+    if(u.nombre === S.usuarioActual){ toast('No puedes eliminar tu propio usuario'); return; }
+    if(confirm('¿Eliminar a ' + u.nombre + '?')){
+      registrarAuditoria('Eliminar Usuario', `Usuario: ${u.nombre}`);
+      S.usuarios.splice(+b.dataset.du, 1);
+      save(); vUSUARIOS();
+    }
+  });
+}
+
+/* ============ RESPALDO / EXPORTAR / IMPORTAR ============ */
+function vBACKUP(){
+  const cuenta = [
+    ['Productos', S.productos.length],
+    ['Ventas', S.ventas.length],
+    ['Fiados / Cobros', S.fiados.length],
+    ['Clientes', S.clientes.length],
+    ['Presupuestos', S.presupuestos.length],
+    ['Compras a proveedores', S.compras.length],
+    ['Cierres de caja', S.cajas.length],
+    ['Registros de auditoría', S.auditoria.length],
+    ['Usuarios', S.usuarios.length],
+    ['Métodos de pago', S.metodos.length]
+  ];
+  main.innerHTML = `<h2>💾 Respaldo del Sistema</h2>
+  <div class="hsub">Exporta o restaura TODO el sistema: inventario, ventas, cobros, caja, usuarios y permisos, métodos de pago, configuración, registro y auditoría, y reportes.</div>
+  <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+   ${cuenta.map(([k, v]) => `<div class="kpi"><div class="v num">${v}</div><div class="l">${k}</div></div>`).join('')}
+  </div>
+  <div class="card" style="margin-bottom:16px">
+   <div class="row" style="justify-content:space-between">
+    <div>
+      <b>☁️ Sincronización en la nube (Firebase Firestore)</b>
+      <div class="mut">${fbOn()
+        ? '✅ <b>Activa.</b> Cada cambio (ventas, inventario, caja, fiados...) se guarda automáticamente en Firebase y se refleja en todos los dispositivos en tiempo real.'
+        : '⚠️ <b>No configurada.</b> Revisa el bloque firebaseConfig en el código del archivo. Mientras tanto, el sistema sigue funcionando solo con este navegador.'}</div>
+      ${window.__lastCloudSync ? `<div class="mut">Última sincronización: ${new Date(window.__lastCloudSync).toLocaleString()}</div>` : ''}
+    </div>
+    <button class="sbtn" id="sync-now" ${fbOn() ? '' : 'disabled'}>🔄 Sincronizar ahora</button>
+   </div>
+  </div>
+  <div class="row" style="align-items:flex-start;gap:16px">
+   <div class="card" style="flex:1;min-width:300px">
+    <h3 style="font-size:15px;margin-bottom:8px">📥 Exportar respaldo</h3>
+    <div class="mut" style="margin-bottom:12px">Genera un archivo <b>.json</b> con la información completa del sistema para guardarlo en USB, correo, PC o la nube. También puedes exportar el inventario en <b>.csv</b> (abre en Excel).</div>
+    ${S.ultimoRespaldo ? `<div class="mut" style="margin-bottom:10px">Último respaldo exportado: <b>${new Date(S.ultimoRespaldo.f).toLocaleString()}</b> por ${esc(S.ultimoRespaldo.usuario)}</div>` : '<div class="mut" style="margin-bottom:10px">Aún no se ha exportado ningún respaldo desde esta pantalla.</div>'}
+    <div class="row">
+      <button class="pbtn" id="exp-full">📥 Exportar respaldo completo (.json)</button>
+      <button class="sbtn" id="exp-clip">📋 Copiar al portapapeles</button>
+      <button class="sbtn" id="exp-csv">📄 Exportar inventario (.csv)</button>
+    </div>
+   </div>
+   <div class="card" style="flex:1;min-width:300px">
+    <h3 style="font-size:15px;margin-bottom:8px">📤 Importar / Restaurar respaldo</h3>
+    <div class="mut" style="margin-bottom:12px">Carga un archivo <b>.json</b> generado previamente con "Exportar respaldo completo". <b style="color:var(--danger)">⚠️ Reemplaza TODA la información actual del sistema</b> (inventario, ventas, caja, usuarios, auditoría, configuración). Requiere PIN de administrador.</div>
+    <div class="row">
+      <input type="file" id="imp-file" accept=".json,application/json" style="flex:1">
+      <button class="pbtn" id="imp-btn" style="background:var(--danger)">📤 Restaurar respaldo</button>
+    </div>
+   </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+   <div class="mut">💡 <b>Consejo:</b> exporta un respaldo al final de cada día o antes de hacer cambios importantes. El archivo .json incluye absolutamente todo el sistema (configuración, logo incluido); si cambias de PC o navegador, solo necesitas este archivo para recuperar todo.</div>
+  </div>`;
+
+  const buildBackup = () => JSON.stringify({
+    app: 'Tech Maxel POS',
+    version: 5,
+    f: new Date().toISOString(),
+    negocio: S.negocio,
+    respaldo: S
+  }, null, 2);
+
+  const descargar = (contenido, nombre, tipo) => {
+    const blob = new Blob([contenido], {type: tipo});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  const nombreFecha = (ext) => {
+    const f = new Date(), pad = n => String(n).padStart(2, '0');
+    return `techmaxel_${f.getFullYear()}-${pad(f.getMonth()+1)}-${pad(f.getDate())}_${pad(f.getHours())}-${pad(f.getMinutes())}.${ext}`;
+  };
+
+  const syncBtn = $('#sync-now');
+  if(syncBtn) syncBtn.onclick = async () => {
+    toast('🔄 Sincronizando con la nube...');
+    await cloudPush();
+    toast('☁️ Sincronizado');
+    vBACKUP();
+  };
+
+  $('#exp-full').onclick = () => {
+    descargar(buildBackup(), nombreFecha('json'), 'application/json');
+    S.ultimoRespaldo = {f: Date.now(), usuario: S.usuarioActual};
+    registrarAuditoria('Exportar Respaldo', 'Se exportó un respaldo completo del sistema (.json)');
+    vBACKUP();
+    toast('📥 Respaldo descargado');
+  };
+
+  $('#exp-clip').onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(buildBackup());
+      S.ultimoRespaldo = {f: Date.now(), usuario: S.usuarioActual};
+      registrarAuditoria('Exportar Respaldo', 'Respaldo completo copiado al portapapeles');
+      toast('📋 Respaldo copiado al portapapeles');
+    } catch(e) {
+      toast('❌ No se pudo copiar al portapapeles; usa la descarga .json');
+    }
+  };
+
+  $('#exp-csv').onclick = () => {
+    const head = ['ID','Nombre','Categoría','Modelo','Modelos (forros)','Precio USD','Costo USD','Stock','IMEIs','Detalle'];
+    const filas = S.productos.map(p => [
+      p.id, p.nombre || '', p.cat || '', p.modelo || '', (p.modelos || []).join(' | '),
+      p.precio, p.costo, p.stock, (p.imeis || []).join(' | '), p.det || ''
+    ]);
+    const csv = [head, ...filas]
+      .map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(','))
+      .join('\n');
+    descargar('\uFEFF' + csv, nombreFecha('csv'), 'text/csv;charset=utf-8');
+    registrarAuditoria('Exportar Inventario CSV', `Se exportaron ${S.productos.length} productos a CSV.`);
+    toast('📄 Inventario exportado a CSV');
+  };
+
+  $('#imp-btn').onclick = () => {
+    const file = $('#imp-file').files[0];
+    if(!file){ toast('Selecciona un archivo .json primero'); return; }
+    const r = new FileReader();
+    r.onload = ev => {
+      let data;
+      try { data = JSON.parse(ev.target.result); }
+      catch(e){ toast('❌ Archivo inválido: no es un JSON válido'); return; }
+      const nuevo = (data && data.respaldo) ? data.respaldo : data;
+      if(!nuevo || !Array.isArray(nuevo.productos) || !Array.isArray(nuevo.ventas)){
+        toast('❌ El archivo no parece ser un respaldo de Tech Maxel POS');
+        return;
+      }
+      // Seguridad: PIN de administrador obligatorio para restaurar
+      const admins = S.usuarios.filter(u => u.rol === 'admin' && u.pin);
+      if(admins.length){
+        const pin = prompt('🔒 Ingrese el PIN de administrador para restaurar el respaldo:');
+        if(pin === null) return;
+        if(!admins.find(a => a.pin === pin)){ toast('❌ PIN de administrador incorrecto'); return; }
+      }
+      const origen = data.f ? new Date(data.f).toLocaleString() : 'archivo seleccionado';
+      if(!confirm('⚠️ Esto REEMPLAZARÁ toda la información actual del sistema (inventario, ventas, caja, usuarios, auditoría y configuración) por la del respaldo del ' + origen + '.\n\n¿Está seguro de continuar?')) return;
+
+      // Normalizar campos mínimos para que el sistema quede consistente
+      ['ventas','fiados','clientes','presupuestos','compras','cajas','auditoria','usuarios','metodos'].forEach(k => { if(!Array.isArray(nuevo[k])) nuevo[k] = []; });
+      if(!nuevo.facturaCfg) nuevo.facturaCfg = {encabezado:'', pie:'¡Gracias por su compra! Conserve su factura', mostrarDatosNegocio:true, mostrarVendedor:true, mostrarTasa:false, usarCorrelativo:true, correlativo:1};
+      if(typeof nuevo.tasa !== 'number' || nuevo.tasa <= 0) nuevo.tasa = 842.2067;
+      if(typeof nuevo.tasaParalela !== 'number') nuevo.tasaParalela = 0;
+      if(!['bcv','paralela'].includes(nuevo.modoTasa)) nuevo.modoTasa = 'bcv';
+      if(!Array.isArray(nuevo.historialTasas)) nuevo.historialTasas = [];
+      if(nuevo.caja === undefined) nuevo.caja = null;
+      if(!nuevo.negocio) nuevo.negocio = 'Tech Maxel';
+      if(!nuevo.usuarios.length) nuevo.usuarios = [{nombre: 'Dueño', rol: 'admin', pin: '1234'}];
+      if(!nuevo.usuarioActual || !nuevo.usuarios.some(u => u.nombre === nuevo.usuarioActual)) nuevo.usuarioActual = nuevo.usuarios[0].nombre;
+
+      nuevo.ultimoRespaldo = {f: Date.now(), usuario: 'Restaurado (antes: ' + S.usuarioActual + ')'};
+      S = nuevo;
+      cart = [];
+      registrarAuditoria('Restaurar Respaldo', 'Se importó y restauró el respaldo generado el ' + origen);
+      save();
+      view = isAdmin() ? 'backup' : 'pos';
+      render();
+      toast('✅ Respaldo restaurado correctamente');
+    };
+    r.readAsText(file);
+  };
+}
+
+/* ============ CONFIGURACIÓN ============ */
+function vCFG(){
+  main.innerHTML = `<h2>Configuración</h2>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+   <div class="card" style="flex:1;min-width:300px;max-width:500px">
+    <h3 style="font-size:15px;margin-bottom:12px">Datos Generales</h3>
+    <label class="mut">Nombre del negocio</label>
+    <input id="nb" value="${esc(S.negocio)}" style="width:100%;margin:4px 0 12px">
+    <label class="mut">RIF</label>
+    <input id="rf" value="${esc(S.rif || '')}" placeholder="Ej: V-1234567-8" style="width:100%;margin:4px 0 12px">
+    <label class="mut">Dirección</label>
+    <input id="dr" value="${esc(S.direccion || '')}" placeholder="Ej: Acarigua - Portuguesa" style="width:100%;margin:4px 0 12px">
+    <label class="mut">Teléfonos</label>
+    <input id="tl" value="${esc(S.telefonos || '')}" placeholder="Ej: 04145502031" style="width:100%;margin:4px 0 12px">
+    <button class="pbtn" id="sv-gen" style="margin-top:4px">💾 Guardar Datos Generales</button>
+   </div>
+
+   <div style="flex:1;min-width:300px;display:flex;flex-direction:column;gap:16px">
+    <div class="card">
+     <h3 style="font-size:15px;margin-bottom:12px">Gestión de Tasas (BCV / Paralela)</h3>
+     <label class="mut">TASA PARALELA (BS/$)</label>
+     <input id="tpar" type="number" step="0.0001" min="0" value="${S.tasaParalela}" style="width:100%;margin:4px 0 10px">
+     <div class="mut" style="margin-bottom:6px">MODO DE PRECIO PARA CLIENTES</div>
+     <div class="row" style="margin-bottom:14px">
+      <button class="sbtn ${S.modoTasa === 'bcv' ? 'on' : ''}" id="btn-bcv" style="flex:1">🇻🇪 USAR TASA BCV <span style="display:block;font-size:11px;font-weight:400">SISTEMA NORMAL</span></button>
+      <button class="sbtn ${S.modoTasa === 'paralela' ? 'on' : ''}" id="btn-par" style="flex:1">PARALELA <span style="display:block;font-size:11px;font-weight:400">PRECIOS INFLADOS</span></button>
+     </div>
+     <button class="pbtn" id="sv-tpar" style="width:100%">💾 GUARDAR TASA PARALELA</button>
+    </div>
+
+    <div class="card">
+     <h3 style="font-size:15px;margin-bottom:10px">Tasa BCV del Día</h3>
+     <div style="font-size:24px;font-weight:800;color:var(--accent);margin-bottom:2px" class="num">${S.tasa.toFixed(4)}</div>
+     <div class="mut" style="margin-bottom:12px">FACTOR BCV — ${new Date().toLocaleDateString()}</div>
+     <button class="sbtn" id="btn-fetch-bcv" style="width:100%;margin-bottom:12px">⚡ OBTENER Y GUARDAR TASA BCV</button>
+     <label class="mut">INGRESAR MANUALMENTE (RESPALDO)</label>
+     <div class="row" style="margin-top:4px">
+      <input id="tman" type="number" step="0.0001" placeholder="Ej: 476.5021" style="flex:1">
+      <button class="pbtn" id="sv-tman">GUARDAR</button>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+   <h3 style="font-size:15px;margin-bottom:10px">Historial de Tasas</h3>
+   <table class="tbl">
+    <thead><tr><th>Fecha</th><th>Factor</th><th>Usuario</th></tr></thead>
+    <tbody>
+     ${S.historialTasas && S.historialTasas.length ? S.historialTasas.map(ht => `<tr>
+      <td class="num">${esc(ht.f)}</td>
+      <td class="num" style="font-weight:700">${Number(ht.factor).toFixed(4)}</td>
+      <td class="mut">${esc(ht.usuario)}</td>
+     </tr>`).join('') : '<tr><td colspan="3" class="mut">Sin historial registrado.</td></tr>'}
+    </tbody>
+   </table>
+  </div>
+
+  <div class="card" style="margin-top:16px;max-width:500px">
+   <h3 style="font-size:15px;margin-bottom:12px">🖨️ Configuración de la Factura Impresa</h3>
+   <label class="mut">Logo del negocio (aparece arriba en la factura)</label>
+   <div class="row" style="margin:4px 0 10px">
+     <input type="file" id="fc-logo" accept="image/*" style="flex:1">
+     ${S.facturaCfg.logo ? `<button class="sbtn danger" id="fc-logo-del">🗑 Quitar logo</button>` : ''}
+   </div>
+   ${S.facturaCfg.logo ? `<div style="margin-bottom:10px"><img src="${S.facturaCfg.logo}" style="width:60px;height:60px;object-fit:contain;border:1px solid var(--border);border-radius:8px;padding:4px"></div>` : ''}
+   <label class="mut">Encabezado personalizado</label>
+   <textarea id="fc-enc" placeholder="Ej: ¡Gracias por preferirnos!" style="width:100%;height:60px;margin:4px 0 10px">${esc(S.facturaCfg.encabezado || '')}</textarea>
+   <label class="mut">Pie de página</label>
+   <input id="fc-pie" value="${esc(S.facturaCfg.pie || '')}" style="width:100%;margin:4px 0 10px">
+   <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+     <label style="font-size:13px"><input type="checkbox" id="fc-neg" ${S.facturaCfg.mostrarDatosNegocio !== false ? 'checked' : ''}> Mostrar RIF y dirección del negocio</label>
+     <label style="font-size:13px"><input type="checkbox" id="fc-ven" ${S.facturaCfg.mostrarVendedor !== false ? 'checked' : ''}> Mostrar nombre del vendedor</label>
+     <label style="font-size:13px"><input type="checkbox" id="fc-tas" ${S.facturaCfg.mostrarTasa ? 'checked' : ''}> Mostrar tasa del día en factura</label>
+     <label style="font-size:13px"><input type="checkbox" id="fc-cor" ${S.facturaCfg.usarCorrelativo !== false ? 'checked' : ''}> Usar número correlativo de factura</label>
+   </div>
+   <div class="row">
+     <button class="pbtn" id="sv-fc" style="flex:1">💾 Guardar Configuración de Factura</button>
+     <button class="sbtn" id="fc-prev">👁️ Vista previa</button>
+   </div>
+  </div>`;
+
+  $('#sv-gen').onclick = () => {
+    S.negocio = $('#nb').value.trim() || 'Tech Maxel';
+    S.rif = $('#rf').value.trim();
+    S.direccion = $('#dr').value.trim();
+    S.telefonos = $('#tl').value.trim();
+    registrarAuditoria('Actualizar Configuración', 'Se actualizaron los datos generales del negocio.');
+    save(); buildSide(); toast('💾 Datos generales guardados');
+  };
+
+  $('#btn-bcv').onclick = () => { S.modoTasa = 'bcv'; registrarAuditoria('Modo Tasa', 'Cambiado a Tasa BCV'); save(); vCFG(); toast('🇻🇪 Modo Tasa BCV activado'); };
+  $('#btn-par').onclick = () => { S.modoTasa = 'paralela'; registrarAuditoria('Modo Tasa', 'Cambiado a Tasa Paralela'); save(); vCFG(); toast('💱 Modo Tasa Paralela activado'); };
+  
+  $('#sv-tpar').onclick = () => {
+    const tp = +$('#tpar').value || 0;
+    S.tasaParalela = tp;
+    registrarAuditoria('Actualizar Tasa Paralela', `Nueva tasa paralela: ${tp}`);
+    save(); vCFG(); toast('💾 Tasa paralela guardada');
+  };
+
+  $('#sv-tman').onclick = () => {
+    const tm = +$('#tman').value || 0;
+    if(tm <= 0){ toast('Ingresa una tasa válida'); return; }
+    S.tasa = tm;
+    S.historialTasas.unshift({f: new Date().toISOString().split('T')[0], factor: tm, usuario: S.usuarioActual});
+    if(S.historialTasas.length > 30) S.historialTasas.pop();
+    registrarAuditoria('Actualizar Tasa Manual', `Tasa BCV manual: ${tm}`);
+    save(); vCFG(); toast('💾 Tasa BCV actualizada manualmente');
+  };
+
+  $('#btn-fetch-bcv').onclick = async () => {
+    toast('Consultando tasa BCV...');
+    try {
+      const res = await fetch('https://ve.dolarapi.com/v1/dolares/bcv');
+      const data = await res.json();
+      if(data && data.promedio){
+        S.tasa = +data.promedio;
+        S.historialTasas.unshift({f: new Date().toISOString().split('T')[0], factor: S.tasa, usuario: S.usuarioActual});
+        if(S.historialTasas.length > 30) S.historialTasas.pop();
+        registrarAuditoria('Actualizar Tasa API', `Tasa BCV obtenida: ${S.tasa}`);
+        save(); vCFG(); toast('⚡ Tasa BCV actualizada: ' + S.tasa.toFixed(4));
+      } else {
+        throw new Error('Formato inválido');
+      }
+    } catch(e) {
+      toast('❌ No se pudo conectar con DolarAPI. Usa la entrada manual.');
+    }
+  };
+
+  $('#sv-fc').onclick = () => {
+    S.facturaCfg = {
+      encabezado: $('#fc-enc').value.trim(),
+      pie: $('#fc-pie').value.trim(),
+      mostrarDatosNegocio: $('#fc-neg').checked,
+      mostrarVendedor: $('#fc-ven').checked,
+      mostrarTasa: $('#fc-tas').checked,
+      usarCorrelativo: $('#fc-cor').checked,
+      correlativo: S.facturaCfg.correlativo || 1
+    };
+    registrarAuditoria('Configurar Factura', 'Se actualizó la configuración de la factura impresa.');
+    save(); toast('💾 Configuración de factura guardada');
+  };
+
+  const logoInput = $('#fc-logo');
+  if(logoInput){
+    logoInput.onchange = e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const max = 220;
+          const sc = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * sc);
+          c.height = Math.round(img.height * sc);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          S.facturaCfg.logo = c.toDataURL('image/png');
+          registrarAuditoria('Cambiar Logo Factura', 'Se actualizó el logo de la factura.');
+          save(); vCFG(); toast('🖼️ Logo guardado');
+        };
+        img.src = ev.target.result;
+      };
+      r.readAsDataURL(file);
+    };
+  }
+  const delLogo = $('#fc-logo-del');
+  if(delLogo){
+    delLogo.onclick = () => {
+      S.facturaCfg.logo = '';
+      registrarAuditoria('Quitar Logo Factura', 'Se eliminó el logo de la factura.');
+      save(); vCFG(); toast('🗑 Logo eliminado');
+    };
+  }
+  $('#fc-prev').onclick = () => {
+    imprimirFacturaHTML({
+      items: [{nombre: 'Producto de ejemplo', precio: 10, qty: 2, imeis: []}],
+      total: 20,
+      pago: {lineas: [{metodo: 'Efectivo $', moneda: 'USD', monto: 20, ref: ''}], vueltoUsd: 0},
+      fecha: Date.now()
+    }, true);
+  };
+}
+
+(async () => {
+  const huboCambios = await cloudPull();
+  if(sessionStorage.getItem('pos_session_ok') === '1'){
+    render();
+  } else {
+    loginScreen();
+  }
+  if(huboCambios){
+    render();
+    toast('☁️ Datos sincronizados desde la nube');
+  }
+  escucharCambiosNube();
+})();
+</script>
+</body>
+</html>
